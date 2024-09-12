@@ -29,7 +29,6 @@ def update_Data_DFI(data, pig_id, predict_age, predict_dfi):
     group = data[(data['id'] == pig_id) & (data['age'] < predict_age)]['Fattening_group.Pen'].iloc[0]
     today_CFI = data[(data['id'] == pig_id) & (data['age'] == predict_age - 1)]['cfi'].values[0]  # Lấy trọng lượng trước ngày age_to_predict
     predict_cfi = today_CFI + predict_dfi
-    pre_weight = data[(data['id'] == pig_id) & (data['age'] == predict_age - 1)]['weight'].values[0]
     
     new_row = {
         'id': pig_id,
@@ -38,7 +37,7 @@ def update_Data_DFI(data, pig_id, predict_age, predict_dfi):
         'weight': -1,
         'dfi': predict_dfi,
         'cfi': predict_cfi,  # CFI có thể được cập nhật sau
-        'previous_weight': pre_weight  # Trọng lượng trước đó sẽ được cập nhật sau
+        'previous_weight': -1  # Trọng lượng trước đó sẽ được cập nhật sau
     }   
     
     data.loc[len(data)] = new_row
@@ -99,6 +98,7 @@ def predict_DFI(data, pig_id, predict_age):
             max_age += 1 
             
             #lấy dữ liệu đầu vào phù hợp
+            pig_data = data_preprocessing(data, pig_id)
             input_model = input_model_DFI(pig_data, max_age)
             
             predict_dfi = model.predict(input_model)
@@ -115,6 +115,8 @@ def predict_DFI(data, pig_id, predict_age):
     
 #****************************************************   2   ************************************************************
 def update_Data_Weight(data, pig_id, predict_age, predict_weight):
+    pre_weight = data[(data['id'] == pig_id) & (data['age'] == predict_age - 1)]['weight']
+    data.loc[(data['id'] == pig_id) & (data['age'] == predict_age), 'previous_weight'] = pre_weight
     data.loc[(data['id'] == pig_id) & (data['age'] == predict_age), 'weight'] = predict_weight
     return data
     
@@ -153,7 +155,7 @@ def model_training_Weight(data):
     print("Độ chính xác weight:",accuracy)
     return model_weight
 
-def predict_Weight(data, pig_id, predict_age):
+def predict_Weight(data, pig_id, predict_age, max_age):
     pig_data = data_preprocessing(data, pig_id)
     data = data_preprocessing_Weight(data)
     model = model_training_Weight(data)
@@ -174,7 +176,6 @@ def predict_Weight(data, pig_id, predict_age):
         input_model_weight = input_model_weight[['dfi', 'previous_weight']]  # Đảm bảo thứ tự cột
         return input_model_weight
     
-    max_age = pig_data['age'].max()
     if predict_age > max_age:
         age_temp = predict_age 
         while age_temp - max_age > 0:
@@ -182,6 +183,7 @@ def predict_Weight(data, pig_id, predict_age):
             input_model = input_Model_Weight(pig_data, max_age)
             predict_weight = model.predict(input_model)
             data = update_Data_Weight(data, pig_id, max_age, predict_weight[0])
+            data.to_csv("c:\\Users\\khanh\\OneDrive\\Máy tính\\Khoa Luan\\Project_old\\pig-farm-master\\includes\\data\\last_weight_data.csv", index=False)  # Xuất dữ liệu vào file out.csv
              
         return predict_weight
     else:
@@ -197,9 +199,11 @@ def predict_Data(data_init, pig_id, predict_age):
     max_age = pig_data['age'].max()
     if predict_age > max_age:
         predict_DFI(data, pig_id, predict_age)
-        predict_weight = predict_Weight(data, pig_id, predict_age)
+        data.to_csv("c:\\Users\\khanh\\OneDrive\\Máy tính\\Khoa Luan\\Project_old\\pig-farm-master\\includes\\data\\pre_weight_data.csv", index=False)  # Xuất dữ liệu vào file out.csv
+        predict_weight = predict_Weight(data, pig_id, predict_age, max_age)
+        
     else:
-        predict_weight = predict_Weight(data, pig_id, predict_age)
+        predict_weight = predict_Weight(data, pig_id, predict_age, max_age)
     
     data.to_csv("c:\\Users\\khanh\\OneDrive\\Máy tính\\Khoa Luan\\Project_old\\pig-farm-master\\includes\\data\\final_data.csv", index=False)  # Xuất dữ liệu vào file out.csv   
 

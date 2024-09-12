@@ -42,7 +42,7 @@ def paint(pig_id, data):
     start_point = int(input("Nhập ngày tuổi bắt đầu: "))
     end_point = int(input("Nhập ngày tuổi kết thúc: "))
     
-    if (start_point <=0 | end_point <=0 | start_point > end_point):
+    if (start_point <=0 or end_point <=0 or start_point > end_point):
         print("Thông tin đầu vào không chính xác")
         return -2
     else: 
