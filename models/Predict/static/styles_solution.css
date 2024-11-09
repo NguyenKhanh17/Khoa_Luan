@@ -1,0 +1,169 @@
+/* Reset styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px; /* Thêm khoảng cách cho body */
+}
+
+/* Navbar styling */
+#navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 40px;
+    background-color: #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+}
+
+#navbar .navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+#navbar .navbar-left .logo {
+    width: 24px;
+    margin-right: 10px;
+}
+
+#navbar .navbar-left span {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+}
+
+#navbar .navbar-menu {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+#navbar .navbar-menu li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 1em;
+}
+
+#navbar .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#navbar .navbar-right a {
+    text-decoration: none;
+    color: #333;
+    font-size: 1em;
+}
+
+#navbar .language-select {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    margin-left: 20px;
+    position: relative;
+}
+
+#navbar .language-select select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+#navbar .language-select select:hover {
+    border-color: #999;
+}
+
+.navbar-menu .active {
+    color: #f39c12; /* Màu chữ */
+    font-weight: bold;
+    background-color: rgba(190, 216, 220, 0.2); /* Nền nhạt */
+    padding: 8px 16px; /* Khoảng cách nội bộ để tạo ô chữ nhật */
+    border-radius: 4px; /* Bo góc (tuỳ chọn) */
+}
+
+.language-select span {
+    color: #333;
+}
+
+.dropdown-icon {
+    width: 10px;
+    height: 10px;
+}
+
+/* Header styling */
+header {
+    text-align: center;
+    margin-top: 100px; /* To compensate for the fixed navbar */
+}
+
+header h1 {
+    font-size: 2em;
+    color: #333;
+}
+
+header p {
+    font-size: 1em;
+    color: #666;
+    max-width: 600px;
+    margin: 10px auto;
+}
+
+.section {
+    background-color: #fff; /* Màu nền trắng cho các phần */
+    border-radius: 10px; /* Bo góc cho các phần */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+    padding: 20px; /* Thêm padding cho các phần */
+    margin: 20px 0; /* Thêm khoảng cách giữa các phần */
+    width: 100%; /* Chiếm toàn bộ chiều rộng */
+    max-width: 800px; /* Giới hạn chiều rộng tối đa */
+}
+
+.content {
+    margin-top: 10px; /* Thêm khoảng cách trên cho nội dung */
+}
+
+ul {
+    list-style-type: disc; /* Kiểu danh sách chấm */
+    margin-left: 20px; /* Thêm khoảng cách bên trái cho danh sách */
+}
+
+button {
+    padding: 10px 20px; /* Thêm padding cho nút */
+    background-color: #4a90e2; /* Màu nền cho nút */
+    color: white; /* Màu chữ trắng */
+    border: none; /* Không có viền */
+    border-radius: 5px; /* Bo góc cho nút */
+    cursor: pointer; /* Hiển thị con trỏ khi di chuột */
+    transition: background-color 0.3s; /* Hiệu ứng chuyển màu */
+}
+
+button:hover {
+    background-color: #3367d6; /* Màu nền khi di chuột qua */
+}
+
+/* Ảnh hưởng navbar*/
+.content-image {
+    display: block; /* Hiển thị hình ảnh như một khối */
+    margin: 20px auto; /* Căn giữa hình ảnh */
+    max-width: 80%; /* Giới hạn chiều rộng tối đa của hình ảnh */
+}
+
+

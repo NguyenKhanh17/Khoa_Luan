@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation</title>
+    <link rel="icon" href="/static/front_end_images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles_docs.css">
+</head>
+<body>
+    <nav id="navbar">
+        <div class="navbar-left">
+            <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
+            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="/overview" class="nav-overview">Overview</a></li>
+            <li><a href="/solutions" class="nav-solutions">Solutions</a></li>
+            <li><a href="/dashboard" class="nav-dashboard">Dashboard</a></li>
+            <li><a href="/resources" class="nav-resources">Resources</a></li>
+            <li><a href="/contact" class="nav-contact">Contact Us</a></li>
+        </ul>
+        <div class="navbar-right">
+            <a href="/docs">Docs</a>
+            <a href="/support">Support</a>
+            <div class="language-select">
+                <select name="language" id="language-select" onchange="changeLanguage()">
+                    <option value="en" selected>English</option>
+                    <option value="vi">Vietnamese</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+    <header>
+        <h1>Documentation</h1>
+    </header>
+    <main>
+        <section id = "introduction">
+            <h2>Introduction</h2>
+            <p>This page provides documentation for using our products and services.</p>
+        </section>
+        <section>
+            <div class="container">
+                <h1>Prediction Algorithms for DFI and Pig Weight</h1>
+                <p class="intro">This page provides detailed information about the prediction algorithms used in the feed intake (DFI) and pig weight prediction system. These algorithms help increase the accuracy of prediction models and support users in selecting the most suitable method.</p>
+
+                <div class="toc">
+                    <h2>Table of Contents</h2>
+                    <ul>
+                        <li><a href="#linear-regression">Linear Regression</a></li>
+                        <li><a href="#ridge-and-lasso-regression">Ridge and Lasso Regression</a></li>
+                        <li><a href="#decision-tree-regression">Decision Tree Regression</a></li>
+                        <li><a href="#random-forest-regression">Random Forest Regression</a></li>
+                        <li><a href="#gradient-boosting">Gradient Boosting</a></li>
+                        <li><a href="#knn-regression">K Nearest Neighbors Regression (KNN Regression)</a></li>
+                        <li><a href="#neural-networks">Neural Networks</a></li>
+                        <li><a href="#gaussian-process-regression">Gaussian Process Regression (GPR)</a></li>
+                        <li><a href="#support-vector-regression">Support Vector Regression (SVR)</a></li>
+                    </ul>
+                </div>
+
+                <section id="linear-regression">
+                    <h2>Linear Regression</h2>
+                    <p><strong>Description:</strong> Assumes a linear relationship between input and output variables. This method attempts to optimize the best straight line to predict values.</p>
+                    <p><strong>Use:</strong> Suitable for simple problems, easy to explain, often used as a baseline.</p>
+                    <p><strong>Advantages:</strong> Simple, easy to implement and explain.</p>
+                    <p><strong>Disadvantages:</strong> Not effective when there is high complexity or non-linear relationships.</p>
+                </section>
+
+                <section id="ridge-and-lasso-regression">
+                    <h2>Ridge and Lasso Regression</h2>
+                    <p><strong>Description:</strong> Uses regularization methods to reduce overfitting by adjusting the model's weights.</p>
+                    <p><strong>Use:</strong> Handles high-dimensional data well, filters out unimportant variables (especially Lasso).</p>
+                    <p><strong>Advantages:</strong> Helps control model complexity and reduces overfitting.</p>
+                    <p><strong>Disadvantages:</strong> Requires adjustment of the regularization coefficient.</p>
+                </section>
+
+                <section id="decision-tree-regression">
+                    <h2>Decision Tree Regression</h2>
+                    <p><strong>Description:</strong> Builds a decision tree to divide data and predict output values.</p>
+                    <p><strong>Use:</strong> Good for non-linear data, easy to understand and visualize.</p>
+                    <p><strong>Advantages:</strong> Easy to understand and can handle both numerical and categorical data.</p>
+                    <p><strong>Disadvantages:</strong> Prone to overfitting if not controlled.</p>
+                </section>
+
+                <section id="random-forest-regression">
+                    <h2>Random Forest Regression</h2>
+                    <p><strong>Description:</strong> Uses multiple decision trees to reduce overfitting and increase accuracy.</p>
+                    <p><strong>Use:</strong> Suitable for complex data, can learn from multiple features of the data.</p>
+                    <p><strong>Advantages:</strong> Reduces overfitting and improves prediction accuracy.</p>
+                    <p><strong>Disadvantages:</strong> Consumes computational resources and is harder to interpret than a single tree.</p>
+                </section>
+
+                <section id="gradient-boosting">
+                    <h2>Gradient Boosting</h2>
+                    <p><strong>Description:</strong> Boosts multiple prediction models sequentially to optimize results.</p>
+                    <p><strong>Use:</strong> Suitable for high-complexity problems, achieves good performance.</p>
+                    <p><strong>Advantages:</strong> High prediction accuracy.</p>
+                    <p><strong>Disadvantages:</strong> Time-consuming to train and prone to overfitting if not tuned properly.</p>
+                </section>
+
+                <section id="knn-regression">
+                    <h2>K Nearest Neighbors Regression (KNN Regression)</h2>
+                    <p><strong>Description:</strong> Predicts values based on the nearest points in the feature space.</p>
+                    <p><strong>Use:</strong> Easy to understand, suitable for non-linear data.</p>
+                    <p><strong>Advantages:</strong> Easy to understand and does not require model training.</p>
+                    <p><strong>Disadvantages:</strong> Consumes resources during prediction, effectiveness decreases with large data.</p>
+                </section>
+
+                <section id="neural-networks">
+                    <h2>Neural Networks</h2>
+                    <p><strong>Description:</strong> Uses artificial neural network structures to learn and predict from data.</p>
+                    <p><strong>Use:</strong> Suitable for complex and non-linear data problems.</p>
+                    <p><strong>Advantages:</strong> Good learning and generalization capabilities.</p>
+                    <p><strong>Disadvantages:</strong> Requires a lot of data and training time, difficult to interpret.</p>
+                </section>
+
+                <section id="gaussian-process-regression">
+                    <h2>Gaussian Process Regression (GPR)</h2>
+                    <p><strong>Description:</strong> Uses Gaussian distributions to predict and estimate data uncertainties.</p>
+                    <p><strong>Use:</strong> Suitable for problems with high uncertainty.</p>
+                    <p><strong>Advantages:</strong> Predicts with confidence.</p>
+                    <p><strong>Disadvantages:</strong> Consumes resources with large data.</p>
+                </section>
+
+                <section id="support-vector-regression">
+                    <h2>Support Vector Regression (SVR)</h2>
+                    <p><strong>Description:</strong> Uses SVM models to create a margin between points and predict values.</p>
+                    <p><strong>Use:</strong> Suitable for noisy data, high complexity.</p>
+                    <p><strong>Advantages:</strong> Good noise resistance.</p>
+                    <p><strong>Disadvantages:</strong> Difficult to scale for large data.</p>
+                </section>
+            </div>
+        </section>
+    </main>
+    <script src="./scripts_docs.js"></script>
+</body>
+</html>

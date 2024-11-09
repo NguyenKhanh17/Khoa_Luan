@@ -1,0 +1,515 @@
+MacOS Style
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #e6eef2;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow: auto; /* Thêm thanh cuộn dọc cho body */
+}
+
+.outer-container {
+    background-color: #dce4e8;
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    border-radius: 15px;
+    overflow: auto; /* Thêm thanh cuộn dọc cho outer-container */
+    box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+    height: calc(100vh - 35px); /* Đảm bảo chiều cao nằm trong màn hình */
+}
+
+.mac-header {
+    background-color: #f2f2f2;
+    padding: 10px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.button {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: gray;
+}
+
+.red {
+    background-color: #ff605c;
+}
+
+.yellow {
+    background-color: #ffbd44;
+}
+
+.green {
+    background-color: #00ca4e;
+}
+
+/* Container layout */
+.container {
+    display: flex;
+    padding: 10px; /* Giảm padding để thu nhỏ chiều cao tổng thể */
+    gap: 10px; /* Giảm khoảng cách giữa các phần tử */
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.05);
+    height: auto; /* Đảm bảo chiều cao tự động */
+    overflow: auto; /* Thêm thanh cuộn cho container */
+}
+
+.left-panel {
+    flex-basis: 50%; /* Căn đều hai bên */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden; /* Ngăn cuộn dọc từng phần */
+    margin-bottom: 20px; /* Thêm khoảng cách dưới cùng cho các biểu đồ */
+}
+
+#lineChart2 #barChart {
+    margin-bottom: 5px;
+}
+
+.right-panel {
+    flex-basis: 50%; /* Căn đều hai bên */
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden; /* Ngăn cuộn dọc từng phần */
+    margin-bottom: 10px; /* Giảm khoảng cách dưới cùng cho các biểu đồ bên phải */
+}
+
+.input-section, .controls, .chart-container {
+    padding: 10px; /* Giảm padding để thu nhỏ chiều cao */
+    background-color: #f2f5f9;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+    flex-grow: 1;
+    max-height: 300px; /* Giới hạn chiều cao tối đa */
+    overflow: auto; /* Thêm thanh cuộn nếu nội dung vượt quá chiều cao */
+}
+
+/* CSS cho các trường nhập liệu */
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    box-sizing: border-box;
+}
+
+/* CSS cho select box */
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    box-sizing: border-box;
+}
+
+/* Thêm khoảng cách giữa các phần nhập liệu */
+.input-section label {
+    display: block;
+    margin-top: 10px;
+}
+
+.control-button {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #4a90e2;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#runModel_dashboard {
+    margin-top: 10px;
+    background-color: #28a745;
+    color: white;
+}
+
+.chart-container canvas {
+    height: 200px; /* Đặt chiều cao cho biểu đồ */
+    max-height: 200px;
+}
+
+table {
+    width: 100%;
+}
+
+/* Thêm các CSS mới cho các class đã thêm vào file HTML */
+.input-flex {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Tăng khoảng cách giữa ô 1 và ô 2 */
+}
+
+.input-item {
+    flex: 1;
+    max-width: 200px;
+}
+
+.input-item-3 {
+    flex: 1;
+    max-width: 200px;
+    margin: 0 auto; /* Căn giữa hàng */
+}
+
+.input-label {
+    text-align: center;
+    display: block;
+}
+
+.input-field {
+    width: 100%;
+    text-align: center; /* Căn giữa chữ "Enter value" */
+}
+
+.controls-flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Căn giữa và tạo khoảng cách giữa các phần tử */
+}
+
+.algorithm-label {
+    text-align: center;
+}
+
+.algorithm-select {
+    width: 150px; /* Giảm chiều ngang của ô nhập */
+}
+
+/* Media Queries */
+
+/* Giao diện cho các màn hình nhỏ hơn 768px (di động) */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column; /* Xếp các phần tử thành một cột */
+        height: auto; /* Đảm bảo chiều cao tự động */
+    }
+
+    .left-panel, .right-panel {
+        width: 100%; /* Chiếm toàn bộ chiều rộng màn hình */
+        margin-bottom: 20px;
+    }
+
+    .chart-container {
+        overflow: auto; /* Thêm thanh cuộn dọc cho chart-container */
+    }
+
+    .chart-container canvas {
+        width: 100%; /* Biểu đồ tự động thay đổi kích thước theo chiều rộng */
+        height: auto; /* Giữ tỷ lệ biểu đồ */
+    }
+
+    table {
+        width: 100%; /* Bảng sẽ chiếm toàn bộ chiều rộng */
+    }
+}
+
+/* Giao diện cho các màn hình từ 768px đến 1024px (máy tính bảng) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .container {
+        flex-direction: row; /* Bố trí lại thành hai cột */
+    }
+
+    .left-panel, .right-panel {
+        width: 50%; /* Mỗi phần tử chiếm 50% chiều rộng */
+    }
+
+    .chart-container canvas {
+        width: 100%; /* Biểu đồ tự động phù hợp với màn hình */
+        height: 300px; /* Điều chỉnh chiều cao */
+    }
+}
+
+/* Giao diện cho các màn hình lớn hơn 1024px (laptop, desktop) */
+@media (min-width: 1024px) {
+    .container {
+        flex-direction: row; /* Bố trí theo hàng ngang */
+    }
+
+    .left-panel, .right-panel {
+        width: 50%;
+    }
+
+    .chart-container canvas {
+        width: 100%;
+        height: 400px;
+    }
+}
+
+
+/* CSS cho hiệu ứng loading */
+.ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150px;
+    height: 150px;
+    background: transparent;
+    border: 3px solid #e0e0e0; /* Màu viền nhạt hơn cho nền trắng */
+    border-radius: 50%;
+    text-align: center;
+    line-height: 150px;
+    font-family: sans-serif;
+    font-size: 20px;
+    color: #4a4a4a; /* Màu chữ đậm hơn */
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Ánh sáng nhẹ cho chữ */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.ring:before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 100%;
+    height: 100%;
+    border: 3px solid transparent;
+    border-top: 3px solid #1274e3; /* Màu xanh nhạt cho đường xoay */
+    border-right: 3px solid #0f73e6;
+    border-radius: 50%;
+    animation: animateC 2s linear infinite;
+}
+
+
+/* CSS chỉ dành cho `loading-span` */
+.loading-span {
+    display: block;
+    position: absolute;
+    top: calc(50% - 2px);
+    left: 50%;
+    width: 50%;
+    height: 4px;
+    background: transparent;
+    transform-origin: left;
+    animation: animate 2s linear infinite;
+}
+
+.loading-span:before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #4a90e2; /* Màu xanh nhẹ cho chấm tròn */
+    top: -6px;
+    right: -8px;
+    box-shadow: 0 0 15px #4a90e2; /* Ánh sáng xanh nhạt cho chấm tròn */
+}
+
+@keyframes animateC {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes animate {
+    0% {
+        transform: rotate(45deg);
+    }
+    100% {
+        transform: rotate(405deg);
+    }
+}
+
+
+/* CSS cho pop-up */
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Làm mờ nền */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease; /* Hiệu ứng chuyển động vào */
+}
+
+.popup-content {
+    position: relative;
+    background: #ffffff;
+    padding: 20px 20px;
+    border-radius: 10px;
+    width: 350px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: scaleUp 0.3s ease; /* Hiệu ứng phóng to khi xuất hiện */
+    margin-top: 10px; /* Chỉnh sửa để nội dung pop-up xuống dưới một chút */
+}
+
+.popup-content .close-btn {
+    position: absolute;
+    top: 8px; /* Đưa dấu X lên cao hơn */
+    right: 8px;
+    cursor: pointer;
+    font-size: 30px;
+    color: #666; /* Đổi màu cho nút X */
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    outline: none;
+    transition: color 0.3s ease;
+}
+
+.popup-content .close-btn:hover {
+    color: #d00d0d; /* Đổi màu khi rê chuột lên nút X */
+}
+
+/* Style cho nội dung */
+.popup-content p {
+    font-size: 25px; /* Tăng cỡ chữ */
+    color: #2a9df4; /* Đổi màu chữ thành xanh */
+    margin-bottom: 20px;
+    font-weight: 500; /* Tăng độ đậm để chữ nổi bật hơn */
+    line-height: 1.4;
+}
+
+.popup-content button {
+    background-color: #4CAF50; /* Màu nút */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.popup-content button:hover {
+    background-color: #45a049; /* Màu khi rê chuột */
+}
+
+/* Hiệu ứng chuyển động */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+    from { transform: scale(0.8); }
+    to { transform: scale(1); }
+}
+
+.error-message {
+    display: none; /* Ẩn tất cả các thông báo lỗi trong HTML */
+}
+
+
+
+/* Reset styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Navbar styling */
+#navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 40px;
+    background-color: #fff;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+}
+
+#navbar .navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+#navbar .navbar-left .logo {
+    width: 24px;
+    margin-right: 10px;
+}
+
+#navbar .navbar-left span {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+}
+
+#navbar .navbar-menu {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+#navbar .navbar-menu li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 1em;
+}
+
+#navbar .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#navbar .navbar-right a {
+    text-decoration: none;
+    color: #333;
+    font-size: 1em;
+}
+
+.navbar-menu .active {
+    color: #f39c12; /* Màu chữ */
+    font-weight: bold;
+    background-color: rgba(190, 216, 220, 0.2); /* Nền nhạt */
+    padding: 8px 16px; /* Khoảng cách nội bộ để tạo ô chữ nhật */
+    border-radius: 4px; /* Bo góc (tuỳ chọn) */
+}
+
+#navbar .language-select {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    margin-left: 20px;
+    position: relative;
+}
+
+#navbar .language-select select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+#navbar .language-select select:hover {
+    border-color: #999;
+}
+
+.language-select span {
+    color: #333;
+}
+
+.dropdown-icon {
+    width: 10px;
+    height: 10px;
+}
+

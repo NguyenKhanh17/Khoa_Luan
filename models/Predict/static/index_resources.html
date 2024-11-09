@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources</title>
+    <link rel="icon" href="/static/front_end_images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles_resources.css">
+</head>
+<body>
+    <nav id="navbar">
+        <div class="navbar-left">
+            <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
+            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="/overview" class="nav-overview">Overview</a></li>
+            <li><a href="/solutions" class="nav-solutions">Solutions</a></li>
+            <li><a href="/dashboard" class="nav-dashboard">Dashboard</a></li>
+            <li><a href="/resources" class="nav-resources">Resources</a></li>
+            <li><a href="/contact" class="nav-contact">Contact Us</a></li>
+        </ul>
+        <div class="navbar-right">
+            <a href="/docs">Docs</a>
+            <a href="/support">Support</a>
+            <div class="language-select">
+                <select name="language" id="language-select" onchange="changeLanguage()">
+                    <option value="en">English</option>
+                    <option value="vi" selected>Vietnamese</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <header>
+        <h1>Introduction to the Project</h1>
+        <p>The data of this project includes information of 100 pigs of the Piétrain NN Français breed, raised at the AXIOM boar testing station in 2020. At this pig farm, an automatic feeding system has been integrated, helping to accurately record the weight and amount of food consumed by each pig each time they visit. This allows detailed data collection on the development of each individual, which can then be analyzed and optimize the breeding process effectively.</p>
+    </header>
+
+    <div class="content">
+        <h2>Structure of the Database</h2>
+        <p>This database is designed to store and retrieve important information about each individual pig, including:</p>
+        <ul>
+            <li><strong>Personal information:</strong> Each pig has a unique identification code (ID) to track history and behavior.</li>
+            <li><strong>Age:</strong> Information about the age of each pig is calculated in days. This data is important because the nutritional needs and growth rate of pigs vary at each stage of development.</li>
+            <li><strong>Growth parameters:</strong> The weight of each pig is recorded at specific times, helping to track the growth process.</li>
+            <li><strong>Daily Feed Intake (DFI):</strong> Automatically recorded each time a pig visits the feeding area, helping to determine the exact amount of food that each pig has consumed.</li>
+        </ul>
+    </div>
+
+    <main>
+        <section>
+            <h2>Upload to Database</h2>
+                <form id="upload-form" enctype="multipart/form-data" method="POST" action="/upload">
+                    <div class="file-upload-container">
+                        <label for="file-upload">Choose a CSV file to upload (must have at least 4 fields: id, age, dfi, weight):</label>
+                        <input type="file" id="file-upload" name="file" accept=".csv" required>
+                    </div>
+                        <button type="submit">Upload</button>
+                </form>
+            <button id="default-data-button">Default Data</button>
+            <div id="error-message">Database is not valid. Please upload again.</div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 SmartSwine. All rights reserved.</p>
+    </footer>
+    <script src="./scripts_resources.js"></script>
+</body>
+</html>

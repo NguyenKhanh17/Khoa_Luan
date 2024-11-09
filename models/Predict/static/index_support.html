@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support</title>
+    <link rel="icon" href="/static/front_end_images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles_support.css">
+</head>
+<body>
+    <nav id="navbar">
+        <div class="navbar-left">
+            <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
+            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="/overview" class="nav-overview">Overview</a></li>
+            <li><a href="/solutions" class="nav-solutions">Solutions</a></li>
+            <li><a href="/dashboard" class="nav-dashboard">Dashboard</a></li>
+            <li><a href="/resources" class="nav-resources">Resources</a></li>
+            <li><a href="/contact" class="nav-contact">Contact Us</a></li>
+        </ul>
+        <div class="navbar-right">
+            <a href="/docs">Docs</a>
+            <a href="/support">Support</a>
+            <div class="language-select">
+                <select name="language" id="language-select" onchange="changeLanguage()">
+                    <option value="en" selected>English</option>
+                    <option value="vi">Vietnamese</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <header>
+        <h1>Support Page</h1>
+        <p>We're here to help you! If you have any questions, please see the information below.</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Frequently Asked Questions</h2>
+            <ul>
+                <li><strong>Question 1:</strong> How do I use the product?</li>
+                <li><strong>Question 2:</strong> Who can I contact for support?</li>
+                <li><strong>Question 3:</strong> Is there any documentation available?</li>
+            </ul>
+        </section>
+        
+        <section>
+            <h2>Contact Support</h2>
+            <p>If you need further assistance, please contact us via email: <a href="mailto:support@smartswine.com">support@smartswine.com</a></p>
+        </section>
+
+        <section>
+            <img src="/static/front_end_images/support.png" alt="Support Image" style="max-width: 100%; height: auto;">
+        </section>
+
+        <section>
+            <h2>Support Resources</h2>
+            <p>We have a variety of resources available to assist you:</p>
+            <ul>
+                <li><a href="/docs">Documentation</a> - Comprehensive guides on using our products.</li>
+                <li><a href="/faq">FAQ</a> - Answers to common questions.</li>
+                <li><a href="/contact">Contact Us</a> - Get in touch with our support team.</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 SmartSwine. All rights reserved.</p>
+    </footer>
+
+    <script src="./scripts_support.js"></script>
+</body>
+</html>

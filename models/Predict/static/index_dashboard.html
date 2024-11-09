@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Styled Dashboard</title>
+    <link rel="icon" href="/static/front_end_images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="./styles_dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav id="navbar">
+        <div class="navbar-left">
+            <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
+            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="/overview" class="nav-overview">Overview</a></li>
+            <li><a href="/solutions" class="nav-solutions">Solutions</a></li>
+            <li><a href="/dashboard" class="nav-dashboard">Dashboard</a></li>
+            <li><a href="/resources" class="nav-resources">Resources</a></li>
+            <li><a href="/contact" class="nav-contact">Contact Us</a></li>
+        </ul>
+        <div class="navbar-right">
+            <a href="/docs">Docs</a>
+            <a href="/support">Support</a>
+            <div class="language-select">
+                <select name="language" id="language-select" onchange="changeLanguage()">
+                    <option value="en">English</option>
+                    <option value="vi">Vietnamese</option>
+                </select>
+            </div>
+            <!-- <button class="start-free">Start free</button> -->
+        </div>
+    </nav>
+
+    <div class="outer-container">
+        <div class="mac-header">
+            <div class="buttons">
+                <div class="button red"></div>
+                <div class="button yellow"></div>
+                <div class="button green"></div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="left-panel">
+                <div class="input-section">
+                    <h3>Enter Data</h3>
+                    <div class="input-flex">
+                        <div class="input-item">
+                            <label for="input1" class="input-label">First Day</label>
+                            <input type="text" id="input1" placeholder="Enter value" class="input-field">
+                        </div>
+                        <div class="input-item">
+                            <label for="input2" class="input-label">Last Day</label>
+                            <input type="text" id="input2" placeholder="Enter value" class="input-field">
+                        </div>
+                    </div>
+                    <br>
+                    <div class="input-item-3">
+                        <label for="input3" class="input-label">ID</label>
+                        <input type="text" id="input3" placeholder="Enter value" class="input-field">
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <h3>Controls</h3>
+                    <div class="controls-flex">
+                        <label for="algorithm" class="algorithm-label">Select Algorithm:</label>
+                        <select id="algorithm" class="algorithm-select">
+                            <option value="algorithm1">K Neighbors Regressor</option>
+                            <option value="algorithm2">Random Forest Regressor</option>
+                            <option value="algorithm3">Linear Regression</option>
+                        </select>
+                        <div id="error-message"></div>
+                        <button class="control-button" id="runModel_dashboard">Run Model</button>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <img id="barchartImage" src="/static/front_end_images/barchart.png" alt="Bar Chart" style="width: 100%; height: auto;">
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="chart-container">
+                    <img id="donutImage" src="/static/front_end_images/donut_chart.png" alt="Donut Chart" style="width: 100%; height: auto;">
+                </div>
+                <div class="chart-container">
+                    <img id="dfiImage" src="/static/front_end_images/linechart1.png" alt="Line Chart 1" style="width: 100%; height: auto;">
+                </div>
+                <div class="chart-container">
+                    <img id="weightImage" src="/static/front_end_images/linechart2.png" alt="Line Chart 2" style="width: 100%; height: auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading-container" style="display: none;">
+        <div class="ring">Loading
+            <span class="loading-span"></span>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="./scripts_dashboard.js"></script>
+</body>
+</html>

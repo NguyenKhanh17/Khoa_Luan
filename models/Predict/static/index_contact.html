@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <link rel="icon" href="/static/front_end_images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles_contact.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav id="navbar">
+        <div class="navbar-left">
+            <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
+            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+        </div>
+        <ul class="navbar-menu">
+            <li><a href="/overview" class="nav-overview">Overview</a></li>
+            <li><a href="/solutions" class="nav-solutions">Solutions</a></li>
+            <li><a href="/dashboard" class="nav-dashboard">Dashboard</a></li>
+            <li><a href="/resources" class="nav-resources">Resources</a></li>
+            <li><a href="/contact" class="nav-contact">Contact Us</a></li>
+        </ul>
+        <div class="navbar-right">
+            <a href="/docs">Docs</a>
+            <a href="/support">Support</a>
+            <div class="language-select">
+                <select name="language" id="language-select" onchange="changeLanguage()">
+                    <option value="en">English</option>
+                    <option value="vi">Vietnamese</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contact Us Section -->
+    <header>
+        <h1>How can we help you today?</h1>
+        <p>Talk to a SmartSwine technical specialist</p>
+    </header>
+
+    <div class="contact-container">
+        <div class="contact-options">
+            <div class="option">
+                <h2>Chat online with us</h2>
+                <p>Chat online with SmartSwine's technical team, available from Monday, 9 am ET, to Friday, 7 pm ET.</p>
+                <a href="#" class="start-chat" id="start-chat-button">Start chat</a>
+            </div>
+            <div class="option">
+                <h2>Request a call back</h2>
+                <p>Fill out the contact form with your information, and we’ll get back to you shortly.</p>
+                <a href="#" class="request-call">Go to contact form</a>
+            </div>
+        </div>
+        <form id="contact-form">
+            <div class="input-container">
+                <div class="input-item">
+                    <label for="name" class="input-label">Your Name</label>
+                    <input type="text" id="name" placeholder="Enter your name" class="input-field" required>
+                </div>
+                <div class="input-item">
+                    <label for="email" class="input-label">Your Email</label>
+                    <input type="email" id="email" placeholder="Enter your email" class="input-field" required>
+                </div>
+            </div>
+            <div class="input-item">
+                <label for="message" class="input-label">Your Message</label>
+                <textarea id="message" placeholder="Write your message here..." class="input-field" required></textarea>
+            </div>
+            <div class="buttons">
+                <button type="submit" class="control-button">Send Message</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="chat-box" class="chat-box hidden">
+        <div class="chat-header">
+            <span>SmartSwine Chat</span>
+            <button id="close-chat" class="close-btn" onclick="toggleChat()">×</button>
+        </div>
+        <div class="chat-content">
+            <p>Hi there! How can we assist you today?</p>
+            <div id="chat-content"></div>
+        </div>
+        <div class="chat-input">
+            <input type="text" placeholder="Type your message..." id="chat-message" onkeypress="sendMessageOnEnter(event)">
+            <button id="send-message" class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 SmartSwine. All rights reserved.</p>
+    </footer>
+    <script src="./scripts_contact.js"></script>
+</body>
+</html>
