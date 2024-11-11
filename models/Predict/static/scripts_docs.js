@@ -1,9 +1,10 @@
 // JavaScript để thêm class 'active' cho mục hiện tại
 document.addEventListener('DOMContentLoaded', () => {
-    const currentPath = window.location.pathname;
-    const menuItems = document.querySelectorAll('.navbar-right a');
+    const currentPath = window.location.pathname;  // Lấy đường dẫn hiện tại của trang
+    const menuItems = document.querySelectorAll('.navbar-menu a');  // Chọn tất cả liên kết trong navbar
 
     menuItems.forEach((item) => {
+        // Nếu đường dẫn của liên kết khớp với đường dẫn của trang hiện tại, thêm lớp active
         if (item.getAttribute('href') === currentPath) {
             item.classList.add('active');
         }

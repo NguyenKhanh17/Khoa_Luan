@@ -189,11 +189,11 @@ def run_dashboard():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
-        return jsonify({"error": "Không có file nào được chọn."}), 400
+        return jsonify({"error": "No file selected."}), 400
 
     file = request.files['file']
     if file.filename == '':
-        return jsonify({"error": "Không có file nào được chọn."}), 400
+        return jsonify({"error": "No file selected."}), 400
 
     # Lưu file vào thư mục input_data và đổi tên thành data_new.csv
     session_id = session.get('session_id')
@@ -215,6 +215,19 @@ def upload_file():
         os.remove(file_path)
         return jsonify({"error": "Database error"}), 400
     return jsonify({"message": "Upload successful!"}), 200
+
+# Route để chuyển về database mặc định
+@app.route('/set_default_data', methods=['POST'])
+def set_default_data():
+    session_id = session.get('session_id')
+    if session_id:
+        # Xóa file đã tải lên
+        file_path = os.path.join('includes', 'data', 'input_data', f'user_data_{session_id}.csv')
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            session.pop('session_id', None)
+            
+    return jsonify({"message": "Switched to default database"}), 200
 
 @app.route('/clear_session', methods=['POST'])
 def clear_session():
@@ -275,7 +288,7 @@ def show_all_chart(donut_data, barchart_data, pig_id):
     plt.pie(sizes, labels=labels, colors=colors, autopct='%1.0f%%', startangle=140, pctdistance=0.85, wedgeprops={'width': 0.4})
     plt.axis('equal')  # Đảm bảo hình tròn
     
-    plt.title(f"Tăng trưởng của con đàn lợn trong cả giai đoạn")
+    plt.title(f"Growth of the Pig Herd Throughout the Period")
 
     # Tạo legend với nhãn và màu sắc đúng   
     for i, label in enumerate(labels):
@@ -293,9 +306,9 @@ def show_all_chart(donut_data, barchart_data, pig_id):
     # Vẽ biểu đồ barchart
     plt.figure(figsize=(10, 6))
     plt.bar(barchart_data['age'], barchart_data['value'], color='blue')
-    plt.xlabel('Ngày tuổi')
-    plt.ylabel('Sai Số(Kg)')
-    plt.title('Sai số dự đoán')
+    plt.xlabel('Age')
+    plt.ylabel('Error(Kg)')
+    plt.title('Prediction Error')
     plt.savefig(os.path.join('models', 'Predict', 'static', 'images', f'barchart_{pig_id}.png'))  # Lưu hình ảnh barchart
     plt.close()
 

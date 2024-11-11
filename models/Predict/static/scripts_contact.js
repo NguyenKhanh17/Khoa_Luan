@@ -1,3 +1,13 @@
+// /*Tự động cuộn mượt đến form khi nhấn vào "Go to contact form"*/
+// $(document).ready(function() {
+//     $('.request-call').click(function(e) {
+//         e.preventDefault();  // Ngừng hành động mặc định của liên kết
+//         $('html, body').animate({
+//             scrollTop: $('#contact-form').offset().top
+//         }, 1000);  // 1000ms là thời gian cuộn mượt
+//     });
+// });
+
 // JavaScript để thêm class 'active' cho mục hiện tại
 document.addEventListener('DOMContentLoaded', () => {
     const currentPath = window.location.pathname;

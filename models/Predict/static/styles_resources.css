@@ -1,210 +1,252 @@
-/* Reset styling */
+/* Reset cơ bản cho trang */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
+    background-color: #f4f6f8;
+    color: #333;
+    line-height: 1.6;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 20px;
+    min-height: 100vh;
 }
 
-/* Navbar styling */
+/* Navbar */
 #navbar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    width: 100%;
-    padding: 10px 40px;
-    background-color: #fff;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    position: fixed;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: #004c99;
+    color: #fff;
+    position: sticky;
     top: 0;
     z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-#navbar .navbar-left {
+.navbar-left {
     display: flex;
     align-items: center;
 }
 
-#navbar .navbar-left .logo {
-    width: 24px;
+.logo {
+    height: 40px;
     margin-right: 10px;
 }
 
-#navbar .navbar-left span {
-    font-size: 1.2em;
+#navbar-title {
+    font-size: 20px;
     font-weight: bold;
-    color: #333;
+    color: #fff;
 }
 
-#navbar .navbar-menu {
+.navbar-menu {
     display: flex;
     list-style: none;
-    gap: 20px;
 }
 
-#navbar .navbar-menu li a {
+.navbar-menu li {
+    margin: 0 15px;
+}
+
+.navbar-menu li a {
+    color: #fff;
     text-decoration: none;
-    color: #333;
-    font-size: 1em;
-}
-
-#navbar .navbar-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-#navbar .navbar-right a {
-    text-decoration: none;
-    color: #333;
-    font-size: 1em;
-}
-
-.navbar-menu .active {
-    color: #f39c12; /* Màu chữ */
     font-weight: bold;
-    background-color: rgba(190, 216, 220, 0.2); /* Nền nhạt */
-    padding: 8px 16px; /* Khoảng cách nội bộ để tạo ô chữ nhật */
-    border-radius: 4px; /* Bo góc (tuỳ chọn) */
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
-#navbar .language-select {
+.navbar-menu li a:hover {
+    background-color: #0066cc;
+}
+
+.navbar-right {
     display: flex;
     align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    margin-left: 20px;
-    position: relative;
 }
 
-#navbar .language-select select {
-    padding: 8px;
-    border: 1px solid #ccc;
+#navbar .navbar-right a:first-child {
+    margin-left: 0;  /* Đảm bảo không có khoảng cách thừa trước phần tử đầu tiên */
+    color: #fff;
+}
+
+#navbar .navbar-right a:nth-child(2) {
+    margin-left: 15px;  /* Khoảng cách giữa Docs và Support */
+    color: #fff;
+}
+
+.language-select select {
+    padding: 5px;
+    border: none;
     border-radius: 5px;
-    background-color: #f9f9f9;
-    font-size: 14px;
-    cursor: pointer;
-    transition: border-color 0.3s;
+    margin-left: 10px;
 }
 
-#navbar .language-select select:hover {
-    border-color: #999;
-}
-
-.language-select span {
-    color: #333;
-}
-
-.dropdown-icon {
-    width: 10px;
-    height: 10px;
-}
-
-/* Header styling */
+/* Header */
 header {
     text-align: center;
-    margin-top: 50px; /* Để bù đắp cho navbar cố định */
+    padding: 50px 20px;
+    background: linear-gradient(135deg, #4b79a1, #283e51);
+    color: white;
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 900px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 header h1 {
-    font-size: 2.5em;
-    color: #333;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
 }
 
 header p {
-    font-size: 1.2em;
-    color: #666;
-    max-width: 800px;
-    margin: 10px auto;
+    max-width: 700px;
+    margin: 0 auto;
+    font-size: 1.1rem;
+    line-height: 1.6;
 }
 
+/* Content Section */
 .content {
+    padding: 40px 20px;
+    background-color: #ffffff;
     max-width: 800px;
     margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
 }
 
 .content h2 {
-    color: #333;
-    margin-top: 20px;
-    font-size: 1.8em;
-}
-
-.content ul {
-    list-style-type: disc;
-    padding-left: 20px;
-}
-
-.content li {
-    margin-bottom: 10px;
-    font-size: 1em;
-    color: #555;
-}
-
-.input-container {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.input-container input {
-    padding: 10px;
-    font-size: 1em;
+    font-size: 2rem;
+    color: #004c99;
+    margin-bottom: 15px;
     text-align: center;
 }
 
-#default-data-button {
-    background-color: #4285f4;
-    color: #fff;
-    padding: 10px 20px;
-    font-size: 0.9em;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-left: 10px; /* Khoảng cách giữa nút "Upload" và nút "Default Data" */
+.content p, .content ul {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
 }
 
-#default-data-button:hover {
-    background-color: #3367d6;
+.content ul li {
+    margin-bottom: 10px;
 }
 
-/* Styling chung cho các nút */
-button {
-    padding: 10px 20px;
-    font-size: 1em;
-    color: #fff;
-    background-color: #4285f4;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.descriptive-stats-image {
+    display: block;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#descriptive-stats-text {
+    text-align: center;
+    font-style: italic;
+    margin-top: 15px;
+    color: #555;
+    margin: auto;
+}
+
+/* Main Section */
+main {
+    width: 100%;
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+section h2 {
+    font-size: 1.8rem;
+    color: #004c99;
+    margin-bottom: 15px;
 }
 
 .file-upload-container {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10px; /* Khoảng cách giữa input chọn file và nút Upload */
+
+    margin-bottom: 10px;
+    text-align: center;
 }
 
-/* Căn chỉnh các nút trên cùng một hàng ngang */
-#upload-form, #default-data-button {
-    display: inline-block; /* Giúp form và nút "Default Data" trên cùng một hàng */
+.file-upload-container label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+#file-upload {
+    width: 230px;
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+button, #default-data-button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #004c99;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
     margin-top: 10px;
+}
+
+button:hover, #default-data-button:hover {
+    background-color: #0066cc;
 }
 
 #error-message {
     color: red;
+    font-weight: bold;
+    margin-top: 10px;
     display: none;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #004c99;
+    color: #fff;
+    font-size: 0.9rem;
+    margin-top: auto;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar-menu {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-menu li {
+        margin: 10px 0;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .content, main {
+        padding: 20px;
+    }
 }
 
 /* CSS cho pop-up */
@@ -251,7 +293,7 @@ button {
     color: #d00d0d; /* Đổi màu khi rê chuột lên nút X */
 }
 
-/* Style cho nội dung */
+/* Style cho nội dung popup */
 .popup-content p {
     font-size: 25px; /* Tăng cỡ chữ */
     color: #2a9df4; /* Đổi màu chữ thành xanh */
@@ -285,5 +327,3 @@ button {
     from { transform: scale(0.8); }
     to { transform: scale(1); }
 }
-
-/* Thêm CSS để đặt hai nút nằm ngang cạnh nhau */

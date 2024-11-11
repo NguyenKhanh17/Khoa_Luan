@@ -13,7 +13,7 @@
     <nav id="navbar">
         <div class="navbar-left">
             <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
-            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+            <span><a href="/" style="text-decoration: none;" id="navbar-title">SmartSwine</a></span>
         </div>
         <ul class="navbar-menu">
             <li><a href="/overview" class="nav-overview">Overview</a></li>
@@ -70,12 +70,16 @@
                     <div class="controls-flex">
                         <label for="algorithm" class="algorithm-label">Select Algorithm:</label>
                         <select id="algorithm" class="algorithm-select">
-                            <option value="algorithm1">K Neighbors Regressor</option>
-                            <option value="algorithm2">Random Forest Regressor</option>
-                            <option value="algorithm3">Linear Regression</option>
+                            <option value="algorithm1">Random Forest Regressor</option>
+                            <option value="algorithm2">Gradient Boosting Regressor</option>
+                            <option value="algorithm3">SVR</option>
+                            <option value="algorithm4">MLP Regressor</option>
+                            <option value="algorithm5">K Neighbors Regressor</option>
+                            <option value="algorithm6">Linear Regression</option>
                         </select>
                         <div id="error-message"></div>
                         <button class="control-button" id="runModel_dashboard">Run Model</button>
+                        <button class="control-button" id="exportPDF" style="display: none;">Export PDF</button> <!-- Nút Export -->
                     </div>
                 </div>
 
@@ -104,8 +108,13 @@
         </div>
     </div>
 
+    <footer>
+        <p>&copy; 2024 SmartSwine. All rights reserved.</p>
+    </footer>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="./scripts_dashboard.js"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@
     <nav id="navbar">
         <div class="navbar-left">
             <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
-            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+            <span><a href="/" style="text-decoration: none;" id="navbar-title">SmartSwine</a></span>
         </div>
         <ul class="navbar-menu">
             <li><a href="/overview" class="nav-overview">Overview</a></li>
@@ -21,8 +21,8 @@
             <li><a href="/contact" class="nav-contact">Contact Us</a></li>
         </ul>
         <div class="navbar-right">
-            <a href="/docs">Docs</a>
-            <a href="/support">Support</a>
+            <a href="/docs" class="nav-docs" style="text-decoration: underline;">Docs</a>
+            <a href="/support" class="nav-support" style="text-decoration: underline;">Support</a>
             <div class="language-select">
                 <select name="language" id="language-select" onchange="changeLanguage()">
                     <option value="en" selected>English</option>
@@ -65,10 +65,19 @@
                 <li><a href="/contact">Contact Us</a> - Get in touch with our support team.</li>
             </ul>
         </section>
+        <section class="latest-updates">
+            <h2>Latest Updates</h2>
+            <p>Stay informed about the latest features and improvements:</p>
+            <ul>
+                <li>Feature Update 1: New user interface for easier navigation.</li>
+                <li>Feature Update 2: Enhanced security measures for your data.</li>
+                <li>Feature Update 3: Improved performance and speed.</li>
+            </ul>
+        </section>
     </main>
 
     <footer>
-        <p>&copy; 2023 SmartSwine. All rights reserved.</p>
+        <p>&copy; 2024 SmartSwine. All rights reserved.</p>
     </footer>
 
     <script src="./scripts_support.js"></script>

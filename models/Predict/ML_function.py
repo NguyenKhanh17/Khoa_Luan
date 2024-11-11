@@ -75,6 +75,8 @@ def Algorithm_Case(Algorithm):
         return MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=1000)
     elif Algorithm == 'algorithm5':
         return KNeighborsRegressor(n_neighbors=2)
+    elif Algorithm == 'algorithm6':
+        return LinearRegression()
     else:
         return "Không có thuật toán phù hợp"
 

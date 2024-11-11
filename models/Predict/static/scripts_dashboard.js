@@ -98,6 +98,9 @@ $(document).ready(function() {
                 $('#barchartImage').attr('src', response.barchart_image + '?t=' + timestamp);
                 $('#dfiImage').attr('src', response.dfi_image + '?t=' + timestamp);
                 $('#weightImage').attr('src', response.weight_image + '?t=' + timestamp);
+
+                // Hiển thị nút "Export PDF" nếu tải thành công
+                $('#exportPDF').show();
             },
             error: function(xhr) {
                 // Ẩn hiệu ứng loading khi có lỗi
@@ -116,6 +119,81 @@ $(document).ready(function() {
         });
     });
 });
+
+document.getElementById("exportPDF").addEventListener("click", function () {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const firstDay = document.getElementById("input1").value;
+    const lastDay = document.getElementById("input2").value;
+    const id = document.getElementById("input3").value;
+    const selectedAlgorithm = document.getElementById("algorithm").value;
+    const link_metrics_weight_pdf = `./includes/data/output_data_user/${selectedAlgorithm}/PDF/weight_summary.csv`;
+    const link_metrics_dfi_pdf = `./includes/data/output_data_user/${selectedAlgorithm}/PDF/dfi_summary.csv`;
+
+    let metrics_weight_data;
+    let metrics_dfi_data;
+
+    function parseCSV(data) {
+        const lines = data.trim().split("\n");
+        const headers = lines[0].split(",");
+        const values = lines[1].split(",");
+    
+        let result = {};
+        headers.forEach((header, i) => {
+            result[header.trim()] = parseFloat(values[i]);
+        });
+        
+        return result;
+    }
+
+    // Sử dụng fetch để lấy dữ liệu từ file CSV
+    fetch(link_metrics_weight_pdf)
+        .then(response => response.text())
+        .then(data => {
+            metrics_weight_data = parseCSV(data);
+        })
+        .catch(error => {
+            console.error("Error fetching weight summary:", error);
+        });
+
+    fetch(link_metrics_dfi_pdf)
+        .then(response => response.text())
+        .then(data => {
+            metrics_dfi_data = parseCSV(data);
+        })
+        .catch(error => {
+            console.error("Error fetching DFI summary:", error);
+        })
+        .finally(() => {
+            addDataToPDF(doc, firstDay, lastDay, id, selectedAlgorithm);
+            doc.save("SmartSwine_Prediction_Report.pdf");
+        });
+
+    function addDataToPDF(doc, firstDay, lastDay, id, selectedAlgorithm) {
+        doc.setFontSize(20);
+        doc.text("SmartSwine Prediction Report", 10, 20);
+        doc.setFontSize(12);
+        doc.text(`First Day: ${firstDay}`, 10, 40);
+        doc.text(`Last Day: ${lastDay}`, 10, 50);
+        doc.text(`ID: ${id}`, 10, 60);
+        doc.text(`Selected Algorithm: ${selectedAlgorithm}`, 10, 70);
+        doc.text(`Report Summary:`, 10, 80);
+        doc.text(`This report includes predictions about the weight and DFI index of piglets from ${firstDay} to ${lastDay}.`, 10, 90);
+        doc.text(`The results are calculated based on the ${selectedAlgorithm} algorithm and input data.`, 10, 100);
+        doc.text(`Algorithm Accuracy:`, 10, 110);
+
+        if (metrics_weight_data && metrics_dfi_data) {
+            // Kiểm tra nếu metrics_weight_data và metrics_dfi_data có dữ liệu hợp lệ
+            doc.text(`Weight: MAE=${metrics_weight_data.mae}, MSE=${metrics_weight_data.mse}, RMSE=${metrics_weight_data.rmse}, R2=${metrics_weight_data.r2}`, 10, 120);
+            doc.text(`DFI: MAE=${metrics_dfi_data.mae}, MSE=${metrics_dfi_data.mse}, RMSE=${metrics_dfi_data.rmse}, R2=${metrics_dfi_data.r2}`, 10, 130);
+        } else {
+            // Nếu không có dữ liệu, hiển thị thông báo
+            doc.text(`Weight and DFI data are not available.`, 10, 120);
+        }
+    }
+});
+
 
 
 function showPopup(message) {

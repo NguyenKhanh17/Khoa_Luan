@@ -126,12 +126,14 @@ def paint(data, data_new, pig_id, first_day, last_day, prediction_type):
         return difference_df
     
 #******************************************************3*********************************************************
-def complete_data(pig_id, first_day, last_day, algorithm, status_new_data):
+def complete_data(pig_id, first_day, last_day, algorithm, status_new_data, session_new_data):
     if not isinstance(first_day, int) or not isinstance(last_day, int) or first_day > last_day or last_day < 1 or first_day < 1:
         print("Lỗi: first_day hoặc last_day không hợp lệ")
         return 400
     if status_new_data:
         all_weight_file_path = os.path.join("includes", "data", "output_data_user", algorithm, "weight")
+        weight_file_init = pd.DataFrame(columns=['age', 'weight'])
+        weight_file_init.to_csv(os.path.join(all_weight_file_path, f"weight_{pig_id}.csv"), index=False)
     else:   
         all_weight_file_path = os.path.join("includes", "data", "output_data", algorithm, "weight")
     
@@ -142,6 +144,8 @@ def complete_data(pig_id, first_day, last_day, algorithm, status_new_data):
     
     if status_new_data:
         all_dfi_file_path = os.path.join("includes", "data", "output_data_user", algorithm, "dfi")
+        dfi_file_init = pd.DataFrame(columns=['age', 'dfi'])
+        dfi_file_init.to_csv(os.path.join(all_dfi_file_path, f"dfi_{pig_id}.csv"), index=False)
     else:
         all_dfi_file_path = os.path.join("includes", "data", "output_data", algorithm, "dfi")
     
@@ -155,8 +159,11 @@ def complete_data(pig_id, first_day, last_day, algorithm, status_new_data):
     dfi_data = pd.read_csv(dfi_file_path)
     weight_data = pd.read_csv(weight_file_path)
     
-    if last_day > weight_data['age'].max() or last_day > dfi_data['age'].max():
-        Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algorithm, status_new_data)
+    if status_new_data:
+        Create_data_new(first_day, last_day, algorithm, session_new_data)
+    else:
+        if last_day > weight_data['age'].max() or last_day > dfi_data['age'].max():
+            Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algorithm, status_new_data)
     return 200
 
 def read_csv_file(data_path):
@@ -202,8 +209,8 @@ def Create_data_new(first_day, last_day, algorithm, session_new_data):
             print("Data NULL")
             return 400
         
-        Create_dfi_ALL_data_begin(data, algorithm, 1, 30)
-        Create_weight_ALL_data_begin(data, algorithm, 1, 30)
+        Create_dfi_ALL_data_begin(data, algorithm, first_day, last_day)
+        Create_weight_ALL_data_begin(data, algorithm, first_day, last_day)
         return 200
     else:
         return 400
@@ -212,10 +219,15 @@ def Create_data_new(first_day, last_day, algorithm, session_new_data):
     
 def reject(pig_id, first_day, last_day, algorithm, session_new_data):
     status_new_data = False
+    link_directory_data_new = os.path.join("includes", "data", "input_data")
     if session_new_data is not None:
-        link_data_new = os.path.join("includes", "data", "input_data", f"user_data_{session_new_data}.csv")
-        data_init = read_csv_file(link_data_new)
-        status_new_data = True
+        link_data_new = os.path.join(link_directory_data_new, f"user_data_{session_new_data}.csv")
+        if os.path.exists(link_data_new):
+            data_init = read_csv_file(link_data_new)
+            status_new_data = True
+        else:
+            data_init = read_csv_file(link_data)
+            status_new_data = False     
     else:
         data_init = read_csv_file(link_data)
     data, status_data = data_standardization(data_init)
@@ -226,15 +238,18 @@ def reject(pig_id, first_day, last_day, algorithm, session_new_data):
         return 400, None, None  # Trả về mã lỗi nếu pig_id không hợp lệ
     
     # hoàn thiện data
-    data_status = complete_data(pig_id, first_day, last_day, algorithm, status_new_data)
+    data_status = complete_data(pig_id, first_day, last_day, algorithm, status_new_data, session_new_data)
     
     if data_status == 400:
         return 400, None, None
 
     if status_new_data:
         link_data_predict = os.path.join("includes", "data", "output_data_user", algorithm)
+        link_pdf = os.path.join("includes", "data", "output_data_user", "PDF")
     else:
         link_data_predict = os.path.join("includes", "data", "output_data", algorithm)
+        link_pdf = os.path.join("includes", "data", "output_data", "PDF")
+        
     all_weight_file_path = os.path.join(link_data_predict, "weight")
     weight_file_path = os.path.join(all_weight_file_path, f"weight_{pig_id}.csv")
     all_dfi_file_path = os.path.join(link_data_predict, "dfi")
@@ -307,7 +322,7 @@ def reject(pig_id, first_day, last_day, algorithm, session_new_data):
                 'mean': mean_weight,
                 'sd': sd_weight
             }, ignore_index=True)
-            
+     
     summary_all_weight_data = pd.DataFrame(columns=['min', 'max', 'mean', 'sd'])
     summary_all_weight_data = summary_all_weight_data.append({
         'min': summary_weight_data['min'].mean(),
@@ -315,6 +330,10 @@ def reject(pig_id, first_day, last_day, algorithm, session_new_data):
         'mean': summary_weight_data['mean'].mean(),
         'sd': summary_weight_data['sd'].mean()
     }, ignore_index=True)
+    
+    summary_weight_data.to_csv(os.path.join(link_pdf, "weight_summary.csv"), index=False)
+    summary_all_weight_data.to_csv(os.path.join(link_pdf, "weight_summary_all.csv"), index=False)
+    
     
 
     
@@ -350,6 +369,9 @@ def reject(pig_id, first_day, last_day, algorithm, session_new_data):
         'mean': summary_dfi_data['mean'].mean(),
         'sd': summary_dfi_data['sd'].mean()
     }, ignore_index=True)
+    
+    summary_dfi_data.to_csv(os.path.join(link_pdf, "dfi_summary.csv"), index=False)
+    summary_all_dfi_data.to_csv(os.path.join(link_pdf, "dfi_summary_all.csv"), index=False)
 
     
     if barchart_data is None or donut_data is None:
@@ -393,7 +415,7 @@ def Create_ALL_data_begin(algorithm, type_predict):
                     dfi_results.to_csv(link_dfi_output, index=False)
                 
                 if isinstance(metrics_DFI, pd.DataFrame) and not metrics_DFI.empty:
-                    link_dfi_output = os.path.join("includes", "data", "output_data", "Metrics", "dfi", "metrics_dfi.csv")
+                    link_dfi_output = os.path.join("includes", "data", "output_data", algorithm, "Metrics", "dfi", "metrics_dfi.csv")
                     metrics_DFI.to_csv(link_dfi_output, index=False)
                     print(f"Hoàn thành giai đoạn 1 thêm 100 ngày đầu tiên cho tất cả con lợn {pig_id} (dfi)")
             elif type_predict == 'weight':
@@ -404,7 +426,7 @@ def Create_ALL_data_begin(algorithm, type_predict):
                     weight_results.to_csv(link_weight_output, index=False)
                     
                 if isinstance(metrics_weight, pd.DataFrame) and not metrics_weight.empty:
-                    link_weight_output = os.path.join("includes", "data", "output_data", "Metrics", "weight", "metrics_weight.csv")
+                    link_weight_output = os.path.join("includes", "data", "output_data", algorithm, "Metrics", "weight", "metrics_weight.csv")
                     metrics_weight.to_csv(link_weight_output, index=False)
                     print(f"Hoàn thành giai đoạn 2 thêm 100 ngày đầu tiên cho tất cả con lợn {pig_id} (weight)")
 
@@ -424,7 +446,7 @@ def Create_dfi_ALL_data_begin(data, algorithm, first_day, last_day):
             dfi_results.to_csv(link_dfi_output, index=False)
             
         if isinstance(metrics_DFI, pd.DataFrame) and not metrics_DFI.empty:
-            link_dfi_output = os.path.join("includes", "data", "output_data_user", "Metrics", "dfi", "metrics_dfi.csv")
+            link_dfi_output = os.path.join("includes", "data", "output_data_user", algorithm, "Metrics", "dfi", "metrics_dfi.csv")
             metrics_DFI.to_csv(link_dfi_output, index=False)
                 
             
@@ -446,7 +468,7 @@ def Create_weight_ALL_data_begin(data, algorithm, first_day, last_day):
             weight_results.to_csv(link_weight_output, index=False)
         
         if isinstance(metrics_weight, pd.DataFrame) and not metrics_weight.empty:
-            link_weight_output = os.path.join("includes", "data", "output_data_user","Metrics", "weight", "metrics_weight.csv")
+            link_weight_output = os.path.join("includes", "data", "output_data_user", algorithm, "Metrics", "weight", "metrics_weight.csv")
             metrics_weight.to_csv(link_weight_output, index=False)
             
     print(f"Hoàn thành thêm weight từ ngày {first_day} đến ngày {last_day}")
@@ -500,8 +522,8 @@ def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algor
 
 #**************************************************    5    ****************************************************************       
 def main():
-    Create_ALL_data_begin('algorithm1', 'dfi')
-    Create_ALL_data_begin('algorithm1', 'weight')
+    # Create_ALL_data_begin('algorithm5', 'dfi')
+    Create_ALL_data_begin('algorithm5', 'weight')
         
             
 #******************************************************6*********************************************************

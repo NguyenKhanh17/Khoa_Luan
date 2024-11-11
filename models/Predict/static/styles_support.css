@@ -1,177 +1,223 @@
-/* Reset styling */
+/* Reset cơ bản */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-/* Updated CSS */
-body {
     font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    margin: 0;
-    padding: 0;
-    color: #333;
 }
 
-/* Navbar styling */
+/* Body */
+body {
+    background-color: #f9fafc;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Navbar */
 #navbar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    width: 100%;
-    padding: 10px 40px;
-    background-color: #fff;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    position: fixed;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background-color: #004c99;
+    color: white;
+    position: sticky;
     top: 0;
     z-index: 1000;
 }
 
-#navbar .navbar-left {
+.navbar-left {
     display: flex;
     align-items: center;
 }
 
-#navbar .navbar-left .logo {
-    width: 24px;
+.logo {
+    height: 40px;
     margin-right: 10px;
 }
 
-#navbar .navbar-left span {
-    font-size: 1.2em;
+#navbar-title {
+    font-size: 20px;
     font-weight: bold;
-    color: #333;
+    color: #fff;
 }
 
-#navbar .navbar-menu {
+.navbar-menu {
     display: flex;
     list-style: none;
-    gap: 20px;
+    margin-left: auto;
 }
 
-#navbar .navbar-menu li a {
-    text-decoration: none;
-    color: #333;
-    font-size: 1em;
+.navbar-menu li {
+    margin: 0 15px;
 }
 
-#navbar .navbar-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-#navbar .navbar-right a {
-    text-decoration: none;
-    color: #333;
-    font-size: 1em;
-}
-
-.navbar-right .active {
-    color: #f39c12; /* Màu chữ */
-    font-weight: bold;
-    background-color: rgba(190, 216, 220, 0.2); /* Nền nhạt */
-    padding: 8px 16px; /* Khoảng cách nội bộ để tạo ô chữ nhật */
-    border-radius: 4px; /* Bo góc (tuỳ chọn) */
-}
-
-#navbar .language-select {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    margin-left: 20px;
-    position: relative;
-}
-
-#navbar .language-select select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    font-size: 14px;
-    cursor: pointer;
-    transition: border-color 0.3s;
-}
-
-#navbar .language-select select:hover {
-    border-color: #999;
-}
-
-.language-select span {
-    color: #333;
-}
-
-.dropdown-icon {
-    width: 10px;
-    height: 10px;
-}
-
-/* Header styling */
-header {
-    background-color: #3fa597;
+.navbar-menu li a {
     color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.navbar-menu li a:hover {
+    background-color: #0066cc;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+#navbar .navbar-right a:first-child {
+    margin-left: 0;  /* Đảm bảo không có khoảng cách thừa trước phần tử đầu tiên */
+    color: #fff;
+}
+
+#navbar .navbar-right a:nth-child(2) {
+    margin-left: 15px;  /* Khoảng cách giữa Docs và Support */
+    color: #fff;
+}
+
+.language-select select {
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    margin-left: 10px;
+}
+
+/* Header */
+header {
     padding: 40px 20px;
     text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    margin: 20px;
+    background: linear-gradient(135deg, #4b79a1, #283e51);
+    color: white;
 }
 
 header h1 {
-    font-size: 2.2em;
+    font-size: 2.5rem;
     margin-bottom: 10px;
-    font-weight: bold;
-    color: rgb(11, 11, 250); /* Đổi màu tiêu đề thành xanh lục */
 }
 
 header p {
-    font-size: 1.1em;
-    color: #dcdcdc;
+    font-size: 1.1rem;
 }
 
+/* Main Content */
 main {
     padding: 20px;
-    max-width: 900px;
-    margin: auto;
 }
 
 section {
-    background: white;
-    margin: 20px 0;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
 }
 
 section h2 {
-    color: #0056b3;
-    font-size: 1.5em;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    color: #004c99;
 }
 
-footer {
-    text-align: center;
-    padding: 15px;
-    background-color: #0056b3;
-    color: white;
-    margin-top: 20px;
-    font-size: 0.9em;
+section ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+section ul li {
+    margin-bottom: 8px;
+}
+
+a {
+    color: #004c99;
+    text-decoration: none;
+    transition: color 0.3s;
 }
 
 a:hover {
-    color: #0056b3;
-}
-
-ul {
-    padding-left: 20px;
-    font-size: 1em;
+    color: #0066cc;
 }
 
 section img {
+    margin: 20px 0;
     display: block;
-    margin: auto;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+}
+
+/* Footer */
+footer {
+    padding: 15px;
+    background-color: #004c99;
+    color: white;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar-menu {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-menu li {
+        margin: 5px 0;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+}
+
+
+/* Latest Updates section */
+.latest-updates {
+    position: fixed;  /* Giữ phần này cố định khi cuộn trang */
+    top: 45%;         /* Căn từ trên xuống, bạn có thể điều chỉnh theo nhu cầu */
+    right: 20px;      /* Căn vào bên phải với khoảng cách 20px */
+    width: 300px;     /* Đặt chiều rộng của phần này */
+    padding: 20px;
+    background-color: #f1f5f8; /* Nền sáng cho phần mới */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ */
+    z-index: 1000; /* Đảm bảo phần này luôn hiển thị trên các phần khác */
+}
+
+.latest-updates h2 {
+    color: #004c99;
+    margin-bottom: 10px;
+}
+
+.latest-updates ul {
+    padding-left: 20px;
+}
+
+.latest-updates ul li {
+    margin-bottom: 8px;
+}
+
+.latest-updates a {
+    color: #004c99;
+    text-decoration: none;
+}
+
+.latest-updates a:hover {
+    color: #0066cc;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .latest-updates {
+        width: 100%; /* Khi màn hình nhỏ, chiếm toàn bộ chiều rộng */
+        bottom: 10px; /* Điều chỉnh lại vị trí khi trên thiết bị di động */
+        left: 0;
+        right: 0;
+        top: auto;
+        margin-left: 0;
+        margin-right: 0;
+    }
 }

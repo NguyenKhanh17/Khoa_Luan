@@ -11,7 +11,7 @@
     <nav id="navbar">
         <div class="navbar-left">
             <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
-            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+            <span><a href="/" style="text-decoration: none;" id="navbar-title">SmartSwine</a></span>
         </div>
         <ul class="navbar-menu">
             <li><a href="/overview" class="nav-overview">Overview</a></li>
@@ -21,8 +21,8 @@
             <li><a href="/contact" class="nav-contact">Contact Us</a></li>
         </ul>
         <div class="navbar-right">
-            <a href="/docs">Docs</a>
-            <a href="/support">Support</a>
+            <a href="/docs" class="nav-docs">Docs</a>
+            <a href="/support" class="nav-support">Support</a>
             <div class="language-select">
                 <select name="language" id="language-select" onchange="changeLanguage()">
                     <option value="en">English</option>
@@ -47,13 +47,16 @@
             <li><strong>Daily Feed Intake (DFI):</strong> Automatically recorded each time a pig visits the feeding area, helping to determine the exact amount of food that each pig has consumed.</li>
         </ul>
     </div>
+    <img src="/static/front_end_images/de_data.png" alt="Descriptive Statistics" class="descriptive-stats-image">
+    <div id="descriptive-stats-text">Descriptive statistics (Mean, Minimum, Maximum and SD: standard deviation) <br> of the variables recorded or estimated on fattening pigs.</div>
+
 
     <main>
         <section>
             <h2>Upload to Database</h2>
                 <form id="upload-form" enctype="multipart/form-data" method="POST" action="/upload">
                     <div class="file-upload-container">
-                        <label for="file-upload">Choose a CSV file to upload (must have at least 4 fields: id, age, dfi, weight):</label>
+                        <label for="file-upload" id = "file-upload-label">Choose a CSV file to upload (must have at least 4 fields: id, age, dfi, weight):</label>
                         <input type="file" id="file-upload" name="file" accept=".csv" required>
                     </div>
                         <button type="submit">Upload</button>
@@ -64,7 +67,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2023 SmartSwine. All rights reserved.</p>
+        <p>&copy; 2024 SmartSwine. All rights reserved.</p>
     </footer>
     <script src="./scripts_resources.js"></script>
 </body>

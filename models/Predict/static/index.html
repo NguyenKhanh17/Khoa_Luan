@@ -13,7 +13,7 @@
     <nav id="navbar">
         <div class="navbar-left">
             <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
-            <span><a href="/" style="text-decoration: none;">SmartSwine</a></span>
+            <span><a href="/" style="text-decoration: none;" id="navbar-title">SmartSwine</a></span>
         </div>
         <ul class="navbar-menu">
             <li><a href="/overview" class="nav-overview">Overview</a></li>
@@ -37,7 +37,7 @@
     <!-- Header -->
     <header>
         <h1>Predicting DFI and Weight for Pigs</h1>
-        <p>We offer solutions for predicting DFI (Daily Feed Intake) and the weight of pigs based on precise feeding technology. Utilizing advanced AI models to optimize the farming process and enhance production efficiency.</p>
+        <p>We offer solutions for predicting DFI (Daily Feed Intake) and the weight of pigs based on precise feeding technology. <br> Utilizing advanced AI models to optimize the farming process and enhance production efficiency.</p>
         <div class="input-container">
             <input type="text" id="input-id" name="id" placeholder="ID" required>
             <input type="text" id="input-first-day" name="first_day" placeholder="First day" required>
@@ -46,12 +46,12 @@
         </div>
         <div class="algorithm-select">
             <select name="algorithm" id="algorithm-select">
-                <option value="algorithm1" class="algorithm1">K Neighbors Regressor</option>
-                <option value="algorithm2" class="algorithm2">Random Forest Regressor</option>
-                <option value="algorithm3" class="algorithm3">Linear Regression</option>
-                <option value="algorithm4" class="algorithm4">Algorithm 4</option>
-                <option value="algorithm5" class="algorithm5">Algorithm 5</option>
-                <option value="algorithm6" class="algorithm6">Algorithm 6</option>
+                <option value="algorithm1" class="algorithm1">Random Forest Regressor</option>
+                <option value="algorithm2" class="algorithm2">Gradient Boosting Regressor</option>
+                <option value="algorithm3" class="algorithm3">SVR</option>
+                <option value="algorithm4" class="algorithm4">MLP Regressor</option>
+                <option value="algorithm5" class="algorithm5">K Neighbors Regressor</option>
+                <option value="algorithm6" class="algorithm6">Linear Regression</option>
             </select>
         </div>
         <div class="buttons">
@@ -77,6 +77,10 @@
             <a href="#">&#8594;</a>
         </div>
     </div>
+    
+    <footer>
+        <p>&copy; 2024 SmartSwine. All rights reserved.</p>
+    </footer>
 
     <script src="./scripts.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

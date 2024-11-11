@@ -24,6 +24,11 @@ document.getElementById("upload-form").addEventListener("submit", function(event
         if (data.message === "Upload successful!") {
             // Display successful pop-up message
             showPopup("Upload successful!");
+            // Change the "Default Data" button color to gray
+            const defaultDataButton = document.getElementById("default-data-button");
+            defaultDataButton.style.backgroundColor = "gray";
+            defaultDataButton.disabled = false; // Bật lại nút sau khi tải lên
+            defaultDataButton.setAttribute("data-state", "uploaded");
         } else {
             // Display error pop-up message
             showPopup(data.error || "An error occurred.");
@@ -33,6 +38,31 @@ document.getElementById("upload-form").addEventListener("submit", function(event
         console.error("Error:", error);
         showPopup("An error occurred.");
     });
+});
+
+// Xử lý sự kiện nhấn nút "Default Data"
+document.getElementById("default-data-button").addEventListener("click", function() {
+    const buttonState = this.getAttribute("data-state");
+
+    if (buttonState === "uploaded") {
+        fetch('/set_default_data', {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === "Chuyển sang database mặc định") {
+                showPopup("Chuyển sang database mặc định");
+                
+                // Chuyển nút sang màu xanh và reset trạng thái
+                this.style.backgroundColor = "green";
+                this.setAttribute("data-state", "default");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            showPopup("An error occurred while switching to default data.");
+        });
+    }
 });
 
 // Hàm hiển thị pop-up
