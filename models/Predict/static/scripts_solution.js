@@ -28,7 +28,6 @@ window.onload = function() {
         changeLanguage(selectedLanguage);
         // Chỉ tải lại trang nếu ngôn ngữ thay đổi
         if (savedLanguage !== selectedLanguage) {
-            changeLanguage(selectedLanguage);
             // location.reload();
         }
     });

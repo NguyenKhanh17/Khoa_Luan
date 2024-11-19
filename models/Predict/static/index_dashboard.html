@@ -50,18 +50,18 @@
                     <h3>Enter Data</h3>
                     <div class="input-flex">
                         <div class="input-item">
-                            <label for="input1" class="input-label">First Day</label>
-                            <input type="text" id="input1" placeholder="Enter value" class="input-field">
+                            <label for="input-first-day" class="input-label">First Day</label>
+                            <input type="text" id="input-first-day" placeholder="Enter value" class="input-field">
                         </div>
                         <div class="input-item">
-                            <label for="input2" class="input-label">Last Day</label>
-                            <input type="text" id="input2" placeholder="Enter value" class="input-field">
+                            <label for="input-last-day" class="input-label">Last Day</label>
+                            <input type="text" id="input-last-day" placeholder="Enter value" class="input-field">
                         </div>
                     </div>
                     <br>
                     <div class="input-item-3">
-                        <label for="input3" class="input-label">ID</label>
-                        <input type="text" id="input3" placeholder="Enter value" class="input-field">
+                        <label for="input-id" class="input-label">ID</label>
+                        <input type="text" id="input-id" placeholder="Enter value" class="input-field">
                     </div>
                 </div>
 
@@ -70,12 +70,14 @@
                     <div class="controls-flex">
                         <label for="algorithm" class="algorithm-label">Select Algorithm:</label>
                         <select id="algorithm" class="algorithm-select">
-                            <option value="algorithm1">Random Forest Regressor</option>
+                            <option value="algorithm1">Linear Regression</option>
                             <option value="algorithm2">Gradient Boosting Regressor</option>
-                            <option value="algorithm3">SVR</option>
+                            <option value="algorithm3">K Neighbors Regressor</option>
                             <option value="algorithm4">MLP Regressor</option>
-                            <option value="algorithm5">K Neighbors Regressor</option>
-                            <option value="algorithm6">Linear Regression</option>
+                            <option value="algorithm5">SVR</option>
+                            <option value="algorithm6">Random Forest Regressor</option>
+                            <option value="algorithm7">Long Short Term Memory</option>
+                            <option value="algorithm8">LSTM (Custom Implementation)</option>
                         </select>
                         <div id="error-message"></div>
                         <button class="control-button" id="runModel_dashboard">Run Model</button>
@@ -85,6 +87,9 @@
 
                 <div class="chart-container">
                     <img id="barchartImage" src="/static/front_end_images/barchart.png" alt="Bar Chart" style="width: 100%; height: auto;">
+                </div>
+                <div class="chart-container">
+                    <img id="metricsImage" src="/static/front_end_images/metrics.png" alt="Metrics" style="width: 100%; height: auto;">
                 </div>
             </div>
 
@@ -115,6 +120,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    
     <script src="./scripts_dashboard.js"></script>
 </body>
 </html>

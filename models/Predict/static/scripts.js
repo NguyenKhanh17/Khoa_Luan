@@ -7,8 +7,17 @@ function runModelData() {
 
     // Kiểm tra điều kiện input
     if (!first_day || !last_day || !id || !algorithm) {
-        showPopup("Vui lòng điền đầy đủ thông tin."); // Hiển thị popup nếu có trường trống
+        showPopup("Please fill in all the information."); // Hiển thị popup nếu có trường trống
         return; // Dừng hàm nếu có trường trống
+    }
+
+    if (first_day > last_day) {
+        showPopup("Start date must be earlier than end date.");
+        return;
+    }
+    else if (first_day < 0 || last_day < 0) {
+        showPopup("Age must be greater than 0.");
+        return;
     }
 
     fetch('/run', {
@@ -24,7 +33,7 @@ function runModelData() {
     })
     .catch(error => {
         console.error('Error:', error);
-        showPopup('Có lỗi xảy ra. Vui lòng thử lại.');
+        showPopup('An error occurred. Please try again.');
     });
 }
 

@@ -5,9 +5,10 @@
 import pandas as pd
 import random
 import os
+import mysql.connector
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import tensorflow as tf
-
+from ML_Long_Term_Memory import train_LSTM
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
@@ -18,16 +19,11 @@ from sklearn.svm import SVR
 from sklearn.neural_network import MLPRegressor
 import numpy as np
 
-# Bỏ đi vì không sử dụng
-# from keras.models import Sequential
-# from keras.layers import Dense
-
-   
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+ 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
-
-
-link_data = os.path.join("includes", "data", "output_data")
 
 #Lọc lấy dữ liệu theo id con lợn cần dự đoán
 #data ban đầu
@@ -64,22 +60,49 @@ def data_standardization(data_init):
     return data, True
 
 # Lựa chọn thuật toán
-def Algorithm_Case(Algorithm):
+def Algorithm_Case(Algorithm, X_train, y_train, type_predict):
     if Algorithm == 'algorithm1':
-        return RandomForestRegressor(n_estimators=200, random_state=42)
+        model = LinearRegression()
+        model.fit(X_train, y_train)
     elif Algorithm == 'algorithm2':
-        return GradientBoostingRegressor(n_estimators=200, random_state=42)
+        model = GradientBoostingRegressor(n_estimators=200, random_state=42, min_samples_leaf=1, max_features='auto', learning_rate=0.1)
+        model.fit(X_train, y_train)
     elif Algorithm == 'algorithm3':
-        return SVR(kernel='rbf', C=1e3, gamma=0.1)
+        model = KNeighborsRegressor(n_neighbors=2)
+        model.fit(X_train, y_train)
     elif Algorithm == 'algorithm4':
-        return MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=1000)
+        model = MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=1000, random_state=42)
+        model.fit(X_train, y_train)
     elif Algorithm == 'algorithm5':
-        return KNeighborsRegressor(n_neighbors=2)
+        model = SVR(kernel='rbf', C=1e3, gamma=0.1)
+        model.fit(X_train, y_train)
     elif Algorithm == 'algorithm6':
-        return LinearRegression()
+        model = RandomForestRegressor(n_estimators=200, random_state=42, min_samples_leaf=1, max_features='auto')
+        model.fit(X_train, y_train)
+    elif Algorithm == 'algorithm7' and type_predict == 'dfi':
+        model = Sequential([
+            LSTM(hidden_dim, input_shape=(7, input_dim)),  # input_dim: tuổi và DFI từng ngày
+            Dense(1)  # Dự đoán DFI hiện tại
+        ])
+        model.fit(X_train, y_train, epochs=50, batch_size=32)
+    elif Algorithm == 'algorithm7' and type_predict == 'weight':
+        model = Sequential([
+            LSTM(hidden_dim, input_shape=(1, input_dim)),  # input_dim: Weight hôm qua, DFI hôm nay
+            Dense(1)  # Dự đoán Weight hiện tại
+        ])
+        model.fit(X_train, y_train, epochs=50, batch_size=32)
+    elif Algorithm == 'algorithm8':
+        model = train_LSTM(X_train, y_train, type_predict)
     else:
         return "Không có thuật toán phù hợp"
+    return model
 
+def predict_input_custom(model, input_model, algorithm):
+    if algorithm == 'algorithm8':
+        predictions = model.forward(input_model)
+    else:
+        predictions = model.predict(input_model)
+    return predictions
 
 #****************************************************   1   ************************************************************
 #Cập nhật giá trị DFI mới
@@ -122,14 +145,10 @@ def model_training_DFI(data, algorithm):
     y = data['dfi']  # Cột DFI
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
-    #Khởi tạo mô hình
-    model_dfi = Algorithm_Case(algorithm) 
-    
-    #Huấn luyện mô hình
-    model_dfi.fit(X_train, y_train)
-    
+    #Khởi tạo và huấn luyện mô hình
+    model_dfi = Algorithm_Case(algorithm, X_train, y_train, 'dfi') 
     #Dự đoán với bộ test
-    predictions = model_dfi.predict(X_test)
+    predictions = predict_input_custom(model_dfi, X_test, algorithm)
     
     mae = mean_absolute_error(y_test, predictions)
     mse = mean_squared_error(y_test, predictions)
@@ -195,7 +214,7 @@ def predict_DFI(data, pig_id, predict_age, algorithm):
                     return None
                 
                 print(f"Ngày {predict_age}:")
-                predict_dfi = float(model.predict(input_model).round(3))
+                predict_dfi = float(predict_input_custom(model, input_model, algorithm).round(3))
                 data = update_Data_DFI(data, pig_id, max_age, predict_dfi)
     
             return predict_dfi
@@ -211,7 +230,7 @@ def predict_DFI(data, pig_id, predict_age, algorithm):
                 else:
                     return None
             print(f"Ngày {predict_age}:")
-            predict_dfi = float(model.predict(input_model).round(3))
+            predict_dfi = float(predict_input_custom(model, input_model, algorithm).round(3))
         return predict_dfi
     
 #****************************************************   2   ************************************************************
@@ -237,10 +256,12 @@ def model_training_Weight(data, algorithm):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     
-    model_weight = Algorithm_Case(algorithm)
-            
-    model_weight.fit(X_train, y_train)
-    predictions = model_weight.predict(X_test)
+    model_weight = Algorithm_Case(algorithm, X_train, y_train, 'weight')
+         
+    if algorithm == 'algorithm8':
+        predictions = model_weight.forward(X_test)
+    else:   
+        predictions = model_weight.predict(X_test)
     # Tính độ chính xác
     mae = mean_absolute_error(y_test, predictions)
     mse = mean_squared_error(y_test, predictions)
@@ -291,7 +312,7 @@ def predict_Weight(data, pig_id, predict_age, max_age, algorithm):
             
             input_model = input_Model_Weight(pig_data, max_age)
             print(f"Ngày {predict_age}:")
-            predict_weight = round(float(model.predict(input_model)), 3)
+            predict_weight = round(float(predict_input_custom(model, input_model, algorithm)), 3)
                   
             data = update_Data_Weight(data, pig_id, max_age, predict_weight)
              
@@ -300,7 +321,7 @@ def predict_Weight(data, pig_id, predict_age, max_age, algorithm):
         
         input_model = input_Model_Weight(pig_data, predict_age)
         print(f"Ngày {predict_age}:")
-        predict_weight = round(float(model.predict(input_model)), 3) 
+        predict_weight = round(float(predict_input_custom(model, input_model, algorithm)), 3) 
     return predict_weight
 
 #****************************************************   3   ************************************************************        
@@ -368,7 +389,7 @@ def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
                     results = results.append({'age': age_start, 'dfi': None}, ignore_index=True)
                     continue
             print(f"Ngày {age_start}:")
-            predict_dfi = float(model.predict(input_model).round(3))
+            predict_dfi = float(predict_input_custom(model, input_model, algorithm).round(3))
             data = update_Data_DFI(data, pig_id, age_start, predict_dfi)
             results = results.append({'age': age_start, 'dfi': predict_dfi}, ignore_index=True)
 
@@ -442,7 +463,7 @@ def multi_predict_Weight(data, pig_id, first_day, last_day, algorithm):
             continue
                 
         print(f"ID {pig_id} - Ngày {age_start}:")
-        predict_weight = round(float(model.predict(input_model)), 3)
+        predict_weight = round(float(predict_input_custom(model, input_model, algorithm)), 3)
               
         data = update_Data_Weight(data, pig_id, age_start, predict_weight)
         results = results.append({'age': int(age_start), 'weight': predict_weight}, ignore_index=True)

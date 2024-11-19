@@ -17,7 +17,8 @@ document.getElementById("upload-form").addEventListener("submit", function(event
     const formData = new FormData(this);
     fetch('/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include' // Để gửi cookie
     })
     .then(response => response.json())
     .then(data => {

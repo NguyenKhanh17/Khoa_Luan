@@ -1,17 +1,25 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, session, render_template, has_request_context
+from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, session, render_template, has_request_context, make_response
 import pandas as pd
 import os
 import numpy as np
 import matplotlib
+import uuid
+import mysql.connector
 matplotlib.use('Agg')  # Sử dụng backend 'Agg' để không yêu cầu giao diện GUI
 import matplotlib.pyplot as plt
+import time
 
 from ML_main import reject
 from ML_main import test_data
 
+from ML_Database import read_data_from_mysql
+from ML_Database import write_data_to_mysql
+from ML_Database import check_table_exist
+from ML_Database import drop_table
+
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import tensorflow as tf
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 app.secret_key = os.urandom(24)
 
 #************************************************************************************************************** */
@@ -84,7 +92,18 @@ def scripts_docs():
 #Thêm các route để phục vụ file HTML
 @app.route('/')
 def home():
-    return app.send_static_file('index.html')
+    session_id = session.get('session_id')
+    response = make_response(app.send_static_file('index.html'))
+    
+    # Nếu không có session ID, tạo session ID mới và đặt cookie
+    if not session_id:
+        session_id = str(uuid.uuid4())
+        session['session_id'] = session_id  # Lưu vào session
+        response.set_cookie('session_id', session_id, max_age=60*60*2, expires=int(time.time()) + 60*60*2)  # Cookie có thời gian sống là 2 giờ
+    
+    print("session_id: ", session_id)
+    return response
+
 
 @app.route('/overview')
 def overview():
@@ -164,19 +183,21 @@ def run_dashboard():
         if not session_id:
             session_new_data = None
         else:
-            if os.path.exists(os.path.join('includes', 'data', 'input_data', f'user_data_{session_id}.csv')):   
-                session_new_data = session_id
+            session_id_mysql = get_session_id_mysql(session_id)
+            if check_table_exist(f"input_user_{session_id_mysql}"):   
+                session_new_data = session_id_mysql
             else:
                 session_new_data = None
             
         status_result, barchart_data, donut_data = reject(pig_id, first_day, last_day, algorithm, session_new_data)
         print("good")
+        
         print(status_result)
         if status_result == 400:
             return jsonify({"error": "Invalid input."}), 400
 
         # # Gọi hàm để dự đoán và vẽ đồ thị
-        result = show_all_chart(donut_data, barchart_data, pig_id)
+        result = show_all_chart(donut_data, barchart_data, pig_id, algorithm)
 
         return jsonify(result)  # Trả về kết quả dưới dạng JSON
     except Exception as e:
@@ -198,10 +219,11 @@ def upload_file():
     # Lưu file vào thư mục input_data và đổi tên thành data_new.csv
     session_id = session.get('session_id')
     if not session_id:
-        session_id = os.urandom(8).hex()
-        session['session_id'] = session_id
-        
-    file_path = os.path.join('includes', 'data', 'input_data', f'user_data_{session_id}.csv')
+        return jsonify({"error": "No session ID found."}), 400
+
+    
+    session_id_mysql = get_session_id_mysql(session_id)    
+    file_path = os.path.join('includes', 'data', 'input_data', f'user_data_{session_id_mysql}.csv')
     
     # Xóa file cũ nếu tồn tại
     if os.path.exists(file_path):
@@ -209,46 +231,115 @@ def upload_file():
         
     file.save(file_path)
     
-    status = test_data(file_path)
-    print("status: ", status)
+    status = write_data_to_mysql("renew","input", "user", "all", "all", "algorithm1", session_id_mysql, link_csv=file_path)
     if status == 401:
-        os.remove(file_path)
+        if check_table_exist(f"input_user_{session_id_mysql}"):
+            drop_table(f"input_user_{session_id_mysql}")
         return jsonify({"error": "Database error"}), 400
+    os.remove(file_path)
+    
     return jsonify({"message": "Upload successful!"}), 200
 
 # Route để chuyển về database mặc định
 @app.route('/set_default_data', methods=['POST'])
 def set_default_data():
     session_id = session.get('session_id')
-    if session_id:
-        # Xóa file đã tải lên
-        file_path = os.path.join('includes', 'data', 'input_data', f'user_data_{session_id}.csv')
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            session.pop('session_id', None)
+    if not session_id:
+        return jsonify({"error": "No session ID found."}), 400
+    
+    session_id_mysql = get_session_id_mysql(session_id)
+    if session_id_mysql:
+        if check_table_exist(f"input_user_{session_id_mysql}"):
+            drop_table(f"input_user_{session_id_mysql}")
             
     return jsonify({"message": "Switched to default database"}), 200
 
-@app.route('/clear_session', methods=['POST'])
-def clear_session():
-    if has_request_context():
-        session_id = session.pop('session_id', None)
-        if session_id:
-            user_file_path = os.path.join('includes', 'data', 'input_data', f'user_data_{session_id}.csv')
-            if os.path.exists(user_file_path):
-                os.remove(user_file_path)  # Xóa file dữ liệu của user
+# @app.route('/clear_session', methods=['POST'])
+# def clear_session():
+#     session_id = session.pop('session_id', None)
+#     if session_id:
+#         user_file_path = os.path.join('includes', 'data', 'input_data', f'user_data_{session_id}.csv')
+#         if os.path.exists(user_file_path):
+#             os.remove(user_file_path)  # Xóa file dữ liệu của user
 
-    return jsonify({"message": "Session data cleared."})
+#     return jsonify({"message": "Session data cleared."})
 
-@app.teardown_appcontext
+@app.teardown_request
 def cleanup_session(exception=None):
-    if has_request_context() and 'session_id' in session:
-        clear_session()
+    # Kiểm tra xem session_id có tồn tại trong session không
+    session_id = session.get('session_id')   
+    session_id_mysql = get_session_id_mysql(session_id)
+    if session_id_mysql is None:
+        if check_table_exist(f"input_user_{session_id_mysql}"):
+            print("end session => drop table")
+            drop_table(f"input_user_{session_id_mysql}")
+        session.pop('session_id', None)  # Xóa session ID khỏi session
+        
+# Route để lấy dữ liệu của cả đàn lợn trong giai đoạn
 
+@app.route('/get_all_summaries', methods=['GET'])
+def get_all_summaries():
+    summaries = {
+        "tables": {},  # Đưa dữ liệu bảng vào lớp "tables"
+        "dfi_error": {},  # Đưa dữ liệu lỗi DFI vào lớp riêng
+        "weight_error": {}  # Đưa dữ liệu lỗi Weight vào lớp riêng
+    }
+
+    tables = [
+        "output_summary_all_default_dfi",
+        "output_summary_all_default_weight",
+        "output_summary_mean_default_dfi",
+        "output_summary_mean_default_weight",
+    ]
+
+    error_tables = {
+        "weight_error": [
+            "output_algorithm1_default_weight_error",
+            "output_algorithm2_default_weight_error",
+            "output_algorithm3_default_weight_error",
+            "output_algorithm4_default_weight_error",
+            "output_algorithm5_default_weight_error",
+            "output_algorithm6_default_weight_error",
+        ],
+        "dfi_error": [
+            "output_algorithm1_default_dfi_error",
+            "output_algorithm2_default_dfi_error",
+            "output_algorithm3_default_dfi_error",
+            "output_algorithm4_default_dfi_error",
+            "output_algorithm5_default_dfi_error",
+            "output_algorithm6_default_dfi_error",
+        ],
+    }
+
+    # Lấy dữ liệu summary
+    for table in tables:
+        if check_table_exist(table):
+            data = read_data_from_mysql(table)
+            summaries["tables"][table] = data.to_dict(orient='records') if not data.empty else {"error": "No data found."}
+        else:
+            summaries["tables"][table] = None
+
+    # Lấy dữ liệu lỗi theo thuật toán
+    for error_type, error_table_list in error_tables.items():
+        for idx, table in enumerate(error_table_list, start=1):
+            if check_table_exist(table):
+                data = read_data_from_mysql(table)
+                summaries[error_type][f"algorithm{idx}"] = data.to_dict(orient='records') if not data.empty else {"error": "No data found."}
+            else:
+                summaries[error_type][f"algorithm{idx}"] = None
+
+    return jsonify(summaries), 200
 #************************************************************************************************************** */  
 #************************************************************************************************************** */
 #************************************************************************************************************** */
-def show_all_chart(donut_data, barchart_data, pig_id):
+def get_session_id_mysql(session_id):
+    if not session_id:
+        return None
+    else:   
+        session_id_mysql = session_id.replace('-', '_')
+        return session_id_mysql
+
+def show_all_chart(donut_data, barchart_data, pig_id, algorithm):
     # Vẽ biểu đồ donut
     if 'value' not in donut_data.columns:
         print("Cột 'value' không tồn tại trong donut_data.")
@@ -314,13 +405,16 @@ def show_all_chart(donut_data, barchart_data, pig_id):
 
     dfi_image = os.path.join('images', f'dfi_{pig_id}.png')  # Đường dẫn đến hình ảnh dfi
     weight_image = os.path.join('images', f'weight_{pig_id}.png')  # Đường dẫn đến hình ảnh weight
+    metrics_image = os.path.join('images', f'metrics_{algorithm}.png')  # Đường dẫn đến hình ảnh metrics
 
     return {
         'donut_image': os.path.join('images', f'donut_{pig_id}.png'),
         'barchart_image': os.path.join('images', f'barchart_{pig_id}.png'),
         'dfi_image': dfi_image,
-        'weight_image': weight_image
+        'weight_image': weight_image,
+        'metrics_image': metrics_image
     }
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # app.run(host="0.0.0.0", port=443, ssl_context=('C:\Certificate\khanhnv.id.vn-crt.pem', 'C:\Certificate\khanhnv.id.vn-key.pem'))
