@@ -22,6 +22,8 @@ import tensorflow as tf
 app = Flask(__name__, static_folder='static')
 app.secret_key = os.urandom(24)
 
+status_upload = False
+
 #************************************************************************************************************** */
 #************************************************************************************************************** */
 #************************************************************************************************************** */
@@ -86,6 +88,14 @@ def scripts_support():
 def scripts_docs():
     return app.send_static_file('scripts_docs.js')
 
+@app.route('/times_new_roman.js')
+def times_new_roman():
+    return app.send_static_file('times_new_roman.js')
+
+@app.route('/simsun.js')    
+def simsun():
+    return app.send_static_file('simsun.js')
+
 #************************************************************************************************************** */
 #************************************************************************************************************** */
 #************************************************************************************************************** */
@@ -99,7 +109,7 @@ def home():
     if not session_id:
         session_id = str(uuid.uuid4())
         session['session_id'] = session_id  # Lưu vào session
-        response.set_cookie('session_id', session_id, max_age=60*60*2, expires=int(time.time()) + 60*60*2)  # Cookie có thời gian sống là 2 giờ
+        response.set_cookie('session_id', session_id, max_age=60*60*24, expires=int(time.time()) + 60*60*24)  # Cookie có thời gian sống là 24 giờ
     
     print("session_id: ", session_id)
     return response
@@ -206,6 +216,10 @@ def run_dashboard():
     
 #************************************************************************************************************** */
 #************************************************************************************************************** */
+@app.route('/training')
+def training():
+    return app.send_static_file('index_training.html')
+
 # Route để tải lên file
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -223,7 +237,7 @@ def upload_file():
 
     
     session_id_mysql = get_session_id_mysql(session_id)    
-    file_path = os.path.join('includes', 'data', 'input_data', f'user_data_{session_id_mysql}.csv')
+    file_path = os.path.join('includes', 'input_data', f'user_data_{session_id_mysql}.csv')
     
     # Xóa file cũ nếu tồn tại
     if os.path.exists(file_path):
@@ -238,6 +252,10 @@ def upload_file():
         return jsonify({"error": "Database error"}), 400
     os.remove(file_path)
     
+    # Cập nhật biến toàn cục status_upload
+    global status_upload
+    if status == 200:
+        status_upload = True
     return jsonify({"message": "Upload successful!"}), 200
 
 # Route để chuyển về database mặc định
@@ -249,8 +267,8 @@ def set_default_data():
     
     session_id_mysql = get_session_id_mysql(session_id)
     if session_id_mysql:
-        if check_table_exist(f"input_user_{session_id_mysql}"):
-            drop_table(f"input_user_{session_id_mysql}")
+        global status_upload
+        status_upload = False
             
     return jsonify({"message": "Switched to default database"}), 200
 
@@ -366,12 +384,24 @@ def show_all_chart(donut_data, barchart_data, pig_id, algorithm):
         sum(value >= point_2 for value in donut_values)
     ]
     
-    # Kết hợp sizes, labels, và colors lại để lọc đồng bộ
+    #Kết hợp sizes, labels, và colors lại để lọc đồng bộ
     labels_and_colors = [
         (size, label, color)
         for size, label, color in zip(sizes, [f'Below {point_1} Kg', f'{point_1} Kg to {point_2} Kg', f'Above {point_2} Kg'], ['#4285F4', '#FBBC05', '#EA4335'])
         if size > 0
     ]
+    
+    # labels_and_colors = [
+    #     (size, label, color)
+    #     for size, label, color in zip(sizes, [f'低于{point_1}公斤', f'{point_1}公斤到{point_2}公斤', f'高于{point_2}公斤'], ['#4285F4', '#FBBC05', '#EA4335'])
+    #     if size > 0
+    # ]
+    
+    # labels_and_colors = [
+    #     (size, label, color)
+    #     for size, label, color in zip(sizes, [f'Dưới {point_1} Kg', f'{point_1} Kg đến {point_2} Kg', f'Trên {point_2} Kg'], ['#4285F4', '#FBBC05', '#EA4335'])
+    #     if size > 0
+    # ]
 
     sizes, labels, colors = map(list, zip(*labels_and_colors))
 
@@ -380,12 +410,16 @@ def show_all_chart(donut_data, barchart_data, pig_id, algorithm):
     plt.axis('equal')  # Đảm bảo hình tròn
     
     plt.title(f"Growth of the Pig Herd Throughout the Period")
-
+    # plt.title(f"整个时期猪群的增长")
+    # plt.title(f"Sự phát triển của đàn lợn trong suốt thời kỳ")
+    
     # Tạo legend với nhãn và màu sắc đúng   
     for i, label in enumerate(labels):
         labels[i] = f"{label} ({sizes[i]})"  # Thêm số lượng vào nhãn
 
-    plt.legend(labels, title="NOTE", loc='upper right', bbox_to_anchor=(1, 1))
+    plt.legend(labels, title="Note", loc='upper right', bbox_to_anchor=(1, 1))
+    #plt.legend(labels, title="注意", loc='upper right', bbox_to_anchor=(1, 1))
+    # plt.legend(labels, title="Chú thích", loc='upper right', bbox_to_anchor=(1, 1))
 
     # Tạo thư mục nếu chưa tồn tại
     os.makedirs(os.path.join('models', 'Predict', 'static', 'images'), exist_ok=True)

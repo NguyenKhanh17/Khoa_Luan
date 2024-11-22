@@ -374,21 +374,21 @@ def reject(pig_id, first_day, last_day, algorithm, session_new_data):
                 mean_weight = None
                 sd_weight = None
                 
-            summary_weight_data = summary_weight_data.append({
+            summary_weight_data = pd.concat([summary_weight_data, pd.DataFrame({
                 'id': file.split('_')[-1].split('.')[0],
                 'min': min_weight,
                 'max': max_weight,
                 'mean': mean_weight,
                 'sd': sd_weight
-            }, ignore_index=True)
+            }, index=[0])], ignore_index=True)
      
     summary_all_weight_data = pd.DataFrame(columns=['min', 'max', 'mean', 'sd'])
-    summary_all_weight_data = summary_all_weight_data.append({
-        'min': summary_weight_data['min'].mean(),
-        'max': summary_weight_data['max'].mean(),
-        'mean': summary_weight_data['mean'].mean(),
-        'sd': summary_weight_data['sd'].mean()
-    }, ignore_index=True)
+    summary_all_weight_data = pd.concat([summary_all_weight_data, pd.DataFrame({
+        'min': [summary_weight_data['min'].mean()],
+        'max': [summary_weight_data['max'].mean()],
+        'mean': [summary_weight_data['mean'].mean()],
+        'sd': [summary_weight_data['sd'].mean()]
+    })], ignore_index=True)
     
     if status_new_data:
         status_write =  write_data_to_mysql("renew", "summary_all", "user", "weight", pig_id, algorithm, session_new_data, data = summary_weight_data)
@@ -423,21 +423,21 @@ def reject(pig_id, first_day, last_day, algorithm, session_new_data):
                 mean_dfi = None
                 sd_dfi = None
                 
-            summary_dfi_data = summary_dfi_data.append({
-                'id': file.split('_')[-1].split('.')[0],
-                'min': min_dfi,
-                'max': max_dfi,
-                'mean': mean_dfi,
-                'sd': sd_dfi
-            }, ignore_index=True)
+            summary_dfi_data = pd.concat([summary_dfi_data, pd.DataFrame({
+                'id': [file.split('_')[-1].split('.')[0]],
+                'min': [min_dfi],
+                'max': [max_dfi],
+                'mean': [mean_dfi],
+                'sd': [sd_dfi]
+            })], ignore_index=True)
     
     summary_all_dfi_data = pd.DataFrame(columns=['min', 'max', 'mean', 'sd'])
-    summary_all_dfi_data = summary_all_dfi_data.append({
-        'min': summary_dfi_data['min'].mean(),
-        'max': summary_dfi_data['max'].mean(),
-        'mean': summary_dfi_data['mean'].mean(),
-        'sd': summary_dfi_data['sd'].mean()
-    }, ignore_index=True)
+    summary_all_dfi_data = pd.concat([summary_all_dfi_data, pd.DataFrame({
+        'min': [summary_dfi_data['min'].mean()],
+        'max': [summary_dfi_data['max'].mean()],
+        'mean': [summary_dfi_data['mean'].mean()],
+        'sd': [summary_dfi_data['sd'].mean()]
+    })], ignore_index=True)
     
     if status_new_data:
         status_write = write_data_to_mysql("renew", "summary_all", "user", "dfi", pig_id, algorithm, session_new_data, data = summary_dfi_data)
@@ -610,11 +610,11 @@ def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algor
 
 
 #**************************************************    5    ****************************************************************       
-def main_test():
-    #Create_ALL_data_begin('algorithm1', 'dfi')
-    Create_ALL_data_begin('algorithm1', 'weight')
-    
 def main():
+    Create_ALL_data_begin('algorithm2', 'dfi')
+    #Create_ALL_data_begin('algorithm1', 'weight')
+    
+def main_test():
     paint_metrics('algorithm1')
             
 #******************************************************6*********************************************************

@@ -65,19 +65,36 @@ def Algorithm_Case(Algorithm, X_train, y_train, type_predict):
         model = LinearRegression()
         model.fit(X_train, y_train)
     elif Algorithm == 'algorithm2':
-        model = GradientBoostingRegressor(n_estimators=200, random_state=42, min_samples_leaf=1, max_features='auto', learning_rate=0.1)
+        model = GradientBoostingRegressor(
+            n_estimators=300,
+            learning_rate=0.05,
+            max_depth=4,
+            random_state=42,
+            min_samples_leaf=2,
+            max_features='sqrt'
+        )
         model.fit(X_train, y_train)
     elif Algorithm == 'algorithm3':
         model = KNeighborsRegressor(n_neighbors=2)
         model.fit(X_train, y_train)
     elif Algorithm == 'algorithm4':
-        model = MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=1000, random_state=42)
+        model = MLPRegressor(
+            hidden_layer_sizes=(128, 64),
+            max_iter=1500,
+            random_state=42,
+            activation='relu'
+        )
         model.fit(X_train, y_train)
     elif Algorithm == 'algorithm5':
-        model = SVR(kernel='rbf', C=1e3, gamma=0.1)
+        model = SVR(kernel='rbf', C=1000, gamma=0.01)
         model.fit(X_train, y_train)
     elif Algorithm == 'algorithm6':
-        model = RandomForestRegressor(n_estimators=200, random_state=42, min_samples_leaf=1, max_features='auto')
+        model = RandomForestRegressor(
+            n_estimators=300,
+            random_state=42,
+            min_samples_leaf=2,
+            max_features='sqrt'
+        )
         model.fit(X_train, y_train)
     elif Algorithm == 'algorithm7' and type_predict == 'dfi':
         model = Sequential([
@@ -346,7 +363,7 @@ def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
         results = pd.DataFrame()
         for age in range(first_day, last_day + 1):
             dfi_value = pig_data[pig_data['age'] == age]['dfi'].values[0] if not pig_data[pig_data['age'] == age]['dfi'].isnull().all() else None
-            results = results.append({'age': age, 'dfi': dfi_value}, ignore_index=True)
+            results = pd.concat([results, pd.DataFrame({'age': [age], 'dfi': [dfi_value]})], ignore_index=True)
             
         results['age'] = results['age'].astype(int)
         print("Hoàn thành hàm Multi_predict_DFI case 1")
@@ -383,15 +400,15 @@ def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
             if input_model.iloc[0, 1:].isnull().any():
                 dfi_value = pig_data[pig_data['age'] == age_start]['dfi'].values
                 if dfi_value.size > 0:
-                    results = results.append({'age': age_start, 'dfi': dfi_value[0]}, ignore_index=True)
+                    results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [dfi_value[0]]})], ignore_index=True)
                     continue
                 else:
-                    results = results.append({'age': age_start, 'dfi': None}, ignore_index=True)
+                    results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [None]})], ignore_index=True)
                     continue
             print(f"Ngày {age_start}:")
             predict_dfi = float(predict_input_custom(model, input_model, algorithm).round(3))
             data = update_Data_DFI(data, pig_id, age_start, predict_dfi)
-            results = results.append({'age': age_start, 'dfi': predict_dfi}, ignore_index=True)
+            results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [predict_dfi]})], ignore_index=True)
 
         results['age'] = results['age'].astype(int)
         print("Hoàn thành hàm Multi_predict_DFI case 2")
@@ -433,11 +450,11 @@ def multi_predict_Weight(data, pig_id, first_day, last_day, algorithm):
             predict_dfi_input = predict_DFI(data, pig_id, predict_age_input, algorithm)
         
         # Đảm bảo thứ tự cột đúng
-        input_model_weight = input_model_weight.append({
-            'age': predict_age_input,
-            'dfi': predict_dfi_input,
-            'previous_weight': previous_weight.values[0]
-        }, ignore_index=True)
+        input_model_weight = pd.concat([input_model_weight, pd.DataFrame({
+            'age': [predict_age_input],
+            'dfi': [predict_dfi_input],
+            'previous_weight': [previous_weight.values[0]]
+        })], ignore_index=True)
         return input_model_weight
     
     age_end = int(last_day)
@@ -453,20 +470,23 @@ def multi_predict_Weight(data, pig_id, first_day, last_day, algorithm):
         pig_data = data_preprocessing(data, pig_id)
         if age_start == min_age:
             predict_weight = float(pig_data[pig_data['age'] == age_start]['weight'].values[0])
-            results = results.append({'age': int(age_start), 'weight': predict_weight}, ignore_index=True)
+            new_row = pd.DataFrame({'age': [int(age_start)], 'weight': [predict_weight]})
+            results = pd.concat([results, new_row], ignore_index=True)
             continue
         
         input_model = input_Model_Weight(pig_data, age_start)
         
         if input_model is None or input_model.isnull().any(axis=1).any():
-            results = results.append({'age': int(age_start), 'weight': None}, ignore_index=True)
+            new_row = pd.DataFrame({'age': [int(age_start)], 'weight': [None]})
+            results = pd.concat([results, new_row], ignore_index=True)
             continue
                 
         print(f"ID {pig_id} - Ngày {age_start}:")
         predict_weight = round(float(predict_input_custom(model, input_model, algorithm)), 3)
               
         data = update_Data_Weight(data, pig_id, age_start, predict_weight)
-        results = results.append({'age': int(age_start), 'weight': predict_weight}, ignore_index=True)
+        new_row = pd.DataFrame({'age': [int(age_start)], 'weight': [predict_weight]})
+        results = pd.concat([results, new_row], ignore_index=True)
     
     print('*****************thông tin*****************')
     results['age'] = results['age'].astype(int)

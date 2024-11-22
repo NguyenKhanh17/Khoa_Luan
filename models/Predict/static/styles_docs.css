@@ -67,11 +67,9 @@ body {
 
 /* Navbar Active Link */
 .navbar-menu li a.active {
-    background-color: #82878d;  /* Màu nền khi liên kết được chọn */
-    color: white;               /* Màu chữ khi liên kết được chọn */
-    border-radius: 5px;         /* Tạo góc bo tròn cho liên kết */
-    padding: 5px 10px;          /* Tăng thêm khoảng cách xung quanh chữ */
-    font-weight: bold;          /* Làm chữ đậm khi chọn */
+    background-color: #a5c0d1; /* Màu nền nổi bật */
+    color: #fff; /* Màu chữ trắng */
+    border-bottom: 3px solid #a5c0d1; /* Đường viền dưới */
 }
 
 /* Thêm hiệu ứng khi hover vào liên kết */
@@ -102,6 +100,35 @@ body {
     border: none;
     border-radius: 5px;
     margin-left: 10px;
+}
+
+/* Responsive Design */
+/* Hide the menu toggle button by default */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* Only show the toggle button on small screens */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .navbar-menu {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-menu.show {
+        display: flex;
+    }
 }
 
 /* Header */

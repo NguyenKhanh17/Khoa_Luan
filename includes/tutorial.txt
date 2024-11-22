@@ -1,0 +1,93 @@
+Hướng Dẫn Sử Dụng Ứng Dụng Dự Đoán DFI & Cân Nặng Cho Lợn
+Ứng dụng này sử dụng Python Flask, kết nối với cơ sở dữ liệu MySQL, và áp dụng nhiều thuật toán học máy (bao gồm LSTM, Random Forest, SVM, XGBoost, v.v.) để dự đoán lượng thức ăn hằng ngày (DFI) và cân nặng của lợn. Hướng dẫn dưới đây sẽ cung cấp các bước chi tiết để bạn cài đặt, cấu hình, và sử dụng ứng dụng.
+
+1. Yêu cầu hệ thống
+Phần mềm và phiên bản cần thiết
+Hệ điều hành: Windows, macOS hoặc Linux.
+Python: Phiên bản 3.10.0 hoặc mới hơn.
+Visual Studio Code (VSCode): Phiên bản 1.95.1 hoặc mới hơn.
+MySQL Server: Để lưu trữ dữ liệu. Bạn có thể tải và cài đặt MySQL từ trang chính thức của MySQL.
+Các thư viện Python cần thiết
+Ứng dụng sử dụng các thư viện dưới đây:
+
+Flask==3.0.3
+pandas==2.2.3
+numpy==1.26.4
+matplotlib==3.9.2
+tensorflow==2.11.0 (dành cho mô hình LSTM)
+scikit-learn (dành cho các thuật toán học máy khác như Random Forest, SVM)
+xgboost (dành cho mô hình XGBoost)
+mysql-connector-python==9.1.0 (dùng để kết nối với MySQL)
+2. Cài đặt môi trường
+Cài đặt Python và MySQL
+Tải Python từ python.org và cài đặt.
+Tải và cài MySQL từ MySQL Downloads.
+Tạo môi trường ảo
+Mở terminal hoặc Command Prompt và điều hướng đến thư mục dự án.
+
+python -m venv venv
+Kích hoạt môi trường:
+Linux/Mac:
+
+source venv/bin/activate
+Windows:
+
+venv\Scripts\activate
+Cài đặt các thư viện cần thiết
+Chạy lệnh sau để cài đặt tất cả các thư viện trong file requirements.txt:
+
+
+pip install -r requirements.txt
+3. Chuẩn bị cơ sở dữ liệu
+Sử dụng cơ sở dữ liệu có sẵn
+Trong thư mục dự án, sẽ có một file SQL cấu trúc cơ sở dữ liệu sẵn có. Bạn chỉ cần nhập file này vào MySQL để tạo bảng và dữ liệu mẫu.
+Mở MySQL Workbench hoặc terminal MySQL, và nhập lệnh sau để tạo cấu trúc cơ sở dữ liệu:
+
+SOURCE path/to/pig_database.sql;
+4. Chạy ứng dụng
+Khởi động ứng dụng Flask
+Mở terminal trong thư mục dự án và kích hoạt môi trường ảo (nếu chưa kích hoạt).
+Chạy ứng dụng Flask bằng lệnh:
+
+python app.py
+Truy cập ứng dụng
+Mở trình duyệt và nhập địa chỉ:
+
+http://127.0.0.1:5000
+Sử dụng ứng dụng
+Nhập thông tin lợn: Trong giao diện, người dùng sẽ điền các thông tin như ID, ngày bắt đầu, ngày kết thúc.
+Chọn thuật toán: Ứng dụng hỗ trợ nhiều thuật toán để lựa chọn, bao gồm:
+LSTM (Long Short-Term Memory): Thuật toán học sâu dành cho dữ liệu chuỗi thời gian.
+Random Forest: Mô hình học máy mạnh mẽ cho các bài toán phân loại và hồi quy.
+SVM (Support Vector Machine): Thuật toán học máy cho các bài toán phân loại.
+XGBoost: Mô hình học máy tối ưu hóa hiệu suất dự đoán.
+K-Nearest Neighbors (KNN)
+Decision Tree
+Linear Regression
+AdaBoost
+Nhấn nút "Run Model": Khi nhấn nút này, ứng dụng sẽ chạy mô hình đã chọn và hiển thị kết quả dự đoán cân nặng và DFI cho lợn.
+5. Cấu trúc thư mục
+app.py: File chính để chạy ứng dụng Flask.
+ML_API.py: Chứa các endpoint API phục vụ các yêu cầu dự đoán.
+ML_function.py: Các hàm xử lý dữ liệu và huấn luyện mô hình.
+ML_main.py: File chứa các hàm chính để khởi tạo và chạy mô hình.
+index_*.html: Các file giao diện người dùng cho trang chính và các trang khác.
+ML_Database.py: Quản lý kết nối và truy vấn cơ sở dữ liệu MySQL.
+model/lstm_model.h5: Mô hình LSTM đã huấn luyện (nếu sử dụng LSTM).
+6. Cách khắc phục lỗi
+Lỗi không kết nối được MySQL:
+Kiểm tra thông tin kết nối trong file ML_Database.py. Đảm bảo các thông số host, user, password, và database là chính xác.
+Bạn có thể thử kết nối thủ công bằng MySQL Workbench hoặc terminal MySQL để xác nhận thông tin kết nối.
+Lỗi thiếu thư viện:
+Nếu thiếu thư viện, chạy lại lệnh:
+
+pip install -r requirements.txt
+Lỗi không tìm thấy file mô hình:
+Đảm bảo rằng file mô hình lstm_model.h5 có trong thư mục model hoặc kiểm tra lại đường dẫn đến file mô hình trong ứng dụng.
+Lỗi không mở được ứng dụng trên trình duyệt:
+Kiểm tra lại địa chỉ truy cập http://127.0.0.1:5000. Nếu không được, thử khởi động lại ứng dụng và kiểm tra lại các lỗi trong terminal.
+7. Ghi chú và Lời khuyên
+Đảm bảo sử dụng các thuật toán đúng: Mỗi thuật toán có các đặc tính riêng và hiệu quả khác nhau với các loại dữ liệu khác nhau. Thử nghiệm với nhiều thuật toán để tìm ra phương án tốt nhất cho dữ liệu của bạn.
+Cải thiện mô hình: Bạn có thể cải thiện mô hình bằng cách tinh chỉnh các tham số của thuật toán học máy.
+Bảo mật: Hãy chắc chắn không lưu trữ thông tin nhạy cảm (như mật khẩu cơ sở dữ liệu) trong mã nguồn. Sử dụng các biến môi trường hoặc các công cụ bảo mật khác để quản lý các thông tin này.
+Chúc bạn thành công trong việc sử dụng ứng dụng dự đoán DFI và cân nặng cho lợn!

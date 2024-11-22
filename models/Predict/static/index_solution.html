@@ -14,6 +14,7 @@
             <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
             <span><a href="/" style="text-decoration: none;" id="navbar-title">SmartSwine</a></span>
         </div>
+        <button class="menu-toggle" aria-label="Toggle Menu">☰</button>
         <ul class="navbar-menu">
             <li><a href="/overview" class="nav-overview">Overview</a></li>
             <li><a href="/solutions" class="nav-solutions">Solutions</a></li>
@@ -25,9 +26,10 @@
             <a href="/docs" class="nav-docs">Docs</a>
             <a href="/support" class="nav-support">Support</a>
             <div class="language-select">
-                <select name="language" id="language-select" onchange="changeLanguage()">
-                    <option value="en">English</option>
+                <select name="language" id="language-select">
+                    <option value="en" selected>English</option>
                     <option value="vi">Vietnamese</option>
+                    <option value="zh">Chinese</option>
                 </select>
             </div>
         </div>
@@ -40,7 +42,9 @@
 
     <!-- Section and Content -->
     <div class="section" id="user-interface">
-        <h2 id="user-interface">1. User Interface (UI)</h2>
+        <div class="content-title" id="user-interface-content-title">
+            <h2>1. User Interface (UI)</h2>
+        </div>
         <div class="content" id="user-interface-content">
             <p>The main interface of the page will include the following input fields:</p>
             <ul>
@@ -57,12 +61,14 @@
                 <li><strong>Run Prediction Button</strong>: When the user clicks, the system sends a prediction request to the backend.</li>
                 <li><strong>Result Display Section</strong>: Includes charts and statistical data.</li>
             </ul>
-            <img class="content-image" src="/static/front_end_images/donut.png" alt="Donut Chart" style="display: block; margin: 20px auto; max-width: 80%;">
+            <img class="content-image" src="/static/front_end_images/donut_en.png" alt="Donut Chart" style="display: block; margin: 20px auto; max-width: 80%;">
         </div>
     </div>
 
     <div class="section" id="input-data-processing">
-        <h2>2. Input Data Processing and Algorithm Selection</h2>
+        <div class="content-title" id="input-data-processing-content-title">
+            <h2>2. Input Data Processing and Algorithm Selection</h2>
+        </div>
         <div class="content" id="input-data-processing-content">
             <p>Backend processes input data from UI as follows:</p>
             <ul>
@@ -70,12 +76,14 @@
                 <li>Standardizes input data and checks the format for consistency with the model.</li>
                 <li>Backend runs the algorithm based on the user's selection to make predictions.</li>
             </ul>
-            <img class="content-image" id="prediction-image" src="/static/front_end_images/predict.png" alt="Prediction Chart" style="display: block; margin: 20px auto; max-width: 80%;">
+            <img class="content-image" id="prediction-image" src="/static/front_end_images/predict_en.png" alt="Prediction Chart" style="display: block; margin: 20px auto; max-width: 80%;">
         </div>
     </div>
 
     <div class="section" id="user-database">
-        <h2>3. Connection to User Database</h2>
+        <div class="content-title" id="user-database-content-title">
+            <h2>3. Connection to User Database</h2>
+        </div>
         <div class="content" id="user-database-content">
             <p>Supports users to upload and view personal databases:</p>
             <ul>
@@ -88,7 +96,9 @@
     </div>
 
     <div class="section" id="implementation">
-        <h2>4. Implementation of Prediction Algorithms and Models</h2>
+        <div class="content-title" id="implementation-content-title">
+            <h2>4. Implementation of Prediction Algorithms and Models</h2>
+        </div>
         <div class="content" id="implementation-content">
             <p>The API for prediction processing will perform the following steps:</p>
             <ul>
@@ -100,20 +110,24 @@
     </div>
 
     <div class="section" id="results-visualization">
-        <h2>5. Results and Data Visualization</h2>
+        <div class="content-title" id="results-visualization-content-title">
+            <h2>5. Results and Data Visualization</h2>
+        </div>
         <div class="content" id="results-visualization-content">
             <ul>
                 <li><strong>Time Series Prediction Chart</strong>: Displays the growth trend of DFI and weight over time.</li>
                 <li><strong>Prediction Data Table</strong>: Details the prediction results for each day.</li>
                 <li><strong>Data Export</strong>: Allows users to download the results into a CSV file.</li>
             </ul>
-            <img class="content-image" src="/static/front_end_images/dfi.png" alt="DFI Chart" style="display: block; margin: 20px auto; max-width: 80%;">
-            <img class="content-image" src="/static/front_end_images/weight.png" alt="Weight Chart" style="display: block; margin: 20px auto; max-width: 80%;">
+            <img class="content-image" src="/static/front_end_images/dfi_en.png" alt="DFI Chart" style="display: block; margin: 20px auto; max-width: 80%;">
+            <img class="content-image" src="/static/front_end_images/weight_en.png" alt="Weight Chart" style="display: block; margin: 20px auto; max-width: 80%;">
         </div>
     </div>
 
     <div class="section" id="maintenance">
-        <h2>6. Maintenance and Upgrades</h2>
+        <div class="content-title" id="maintenance-content-title">
+            <h2>6. Maintenance and Upgrades</h2>
+        </div>
         <div class="content" id="maintenance-content">
             <ul>
                 <li>Ensures the security of user data and manages personal databases separately from the main data.</li>
@@ -126,7 +140,7 @@
     <footer>
         <p>&copy; 2024 SmartSwine. All rights reserved.</p>
     </footer>
-    <script src="./scripts_solution.js"></script>
 
+    <script src="./scripts_solution.js"></script>
 </body>
 </html>

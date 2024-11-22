@@ -1,12 +1,7 @@
-// /*Tự động cuộn mượt đến form khi nhấn vào "Go to contact form"*/
-// $(document).ready(function() {
-//     $('.request-call').click(function(e) {
-//         e.preventDefault();  // Ngừng hành động mặc định của liên kết
-//         $('html, body').animate({
-//             scrollTop: $('#contact-form').offset().top
-//         }, 1000);  // 1000ms là thời gian cuộn mượt
-//     });
-// });
+// Toggle menu
+document.querySelector('.menu-toggle').addEventListener('click', function() {
+    document.querySelector('.navbar-menu').classList.toggle('show');
+});
 
 // JavaScript để thêm class 'active' cho mục hiện tại
 document.addEventListener('DOMContentLoaded', () => {
@@ -108,30 +103,155 @@ function toggleChat() {
 }
 
 //************************************************************************************************************** */
-// Kiểm tra Local Storage để xem ngôn ngữ đã được lưu chưa
-window.onload = function() {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    const languageSelect = document.getElementById('language-select');
-    
-    // Nếu có ngôn ngữ đã lưu, cập nhật thanh chọn ngôn ngữ mà không tải lại trang
-    if (savedLanguage && savedLanguage !== languageSelect.value) {
-        languageSelect.value = savedLanguage;
+// Dữ liệu ngôn ngữ
+const translations = {
+    en: {
+        navOverview: "Overview",
+        navSolutions: "Solutions",
+        navDashboard: "Dashboard",
+        navResources: "Resources",
+        navContact: "Contact Us",
+        navDocs: "Docs",
+        navSupport: "Support",
+        headerTitle: "How can we help you today?",
+        headerDescription: "Talk to a SmartSwine technical specialist",
+        chatOnlineTitle: "Chat online with us",
+        chatOnlineDescription: "Chat online with SmartSwine's technical team, available from Monday, 9 am ET, to Friday, 7 pm ET.",
+        startChatButton: "Start chat",
+        requestCallTitle: "Request a call back",
+        requestCallDescription: "Fill out the contact form with your information, and we’ll get back to you shortly.",
+        goToContactForm: "Go to contact form",
+        yourNameLabel: "Your Name",
+        yourEmailLabel: "Your Email",
+        yourMessageLabel: "Your Message",
+        sendMessageButton: "Send Message",
+        chatHeader: "SmartSwine Chat",
+        chatGreeting: "Hi there! How can we assist you today?",
+        placeholders: {
+            name: "Enter your name",
+            email: "Enter your email",
+            message: "Write your message here..."
+        }
+    },
+    vi: {
+        navOverview: "Tổng Quan",
+        navSolutions: "Giải Pháp",
+        navDashboard: "Bảng Điều Khiển",
+        navResources: "Tài Nguyên",
+        navContact: "Liên Hệ",
+        navDocs: "Tài Liệu",
+        navSupport: "Hỗ Trợ",
+        headerTitle: "Chúng tôi có thể giúp gì cho bạn hôm nay?",
+        headerDescription: "Nói chuyện với chuyên gia kỹ thuật của SmartSwine",
+        chatOnlineTitle: "Trò chuyện trực tuyến với chúng tôi",
+        chatOnlineDescription: "Trò chuyện trực tuyến với đội ngũ kỹ thuật SmartSwine, từ thứ Hai, 9 giờ sáng (ET), đến thứ Sáu, 7 giờ tối (ET).",
+        startChatButton: "Bắt đầu trò chuyện",
+        requestCallTitle: "Yêu cầu gọi lại",
+        requestCallDescription: "Điền vào biểu mẫu liên hệ với thông tin của bạn, chúng tôi sẽ sớm liên hệ lại.",
+        goToContactForm: "Đi đến biểu mẫu liên hệ",
+        yourNameLabel: "Tên của bạn",
+        yourEmailLabel: "Email của bạn",
+        yourMessageLabel: "Tin nhắn của bạn",
+        sendMessageButton: "Gửi Tin Nhắn",
+        chatHeader: "Trò chuyện SmartSwine",
+        chatGreeting: "Xin chào! Chúng tôi có thể hỗ trợ gì cho bạn hôm nay?",
+        placeholders: {
+            name: "Nhập tên của bạn",
+            email: "Nhập email của bạn",
+            message: "Viết tin nhắn của bạn ở đây..."
+        }
+    },
+    zh: {
+        navOverview: "概述",
+        navSolutions: "解决方案",
+        navDashboard: "仪表板",
+        navResources: "资源",
+        navContact: "联系我们",
+        navDocs: "文档",
+        navSupport: "支持",
+        headerTitle: "我们今天能为您提供什么帮助？",
+        headerDescription: "与SmartSwine的技术专家交谈",
+        chatOnlineTitle: "与我们在线聊天",
+        chatOnlineDescription: "与SmartSwine的技术团队在线聊天，时间为周一至周五，东部时间上午9点至晚上7点。",
+        startChatButton: "开始聊天",
+        requestCallTitle: "请求回电",
+        requestCallDescription: "填写联系表格并提供您的信息，我们会尽快与您联系。",
+        goToContactForm: "前往联系表格",
+        yourNameLabel: "您的姓名",
+        yourEmailLabel: "您的电子邮件",
+        yourMessageLabel: "您的消息",
+        sendMessageButton: "发送消息",
+        chatHeader: "SmartSwine聊天",
+        chatGreeting: "您好！我们今天能为您提供什么帮助？",
+        placeholders: {
+            name: "输入您的姓名",
+            email: "输入您的电子邮件",
+            message: "在此处写下您的消息..."
+        }
+    }
+};
+
+function changeLanguage(language) {
+    const elements = {
+        navOverview: document.querySelector(".nav-overview"),
+        navSolutions: document.querySelector(".nav-solutions"),
+        navDashboard: document.querySelector(".nav-dashboard"),
+        navResources: document.querySelector(".nav-resources"),
+        navContact: document.querySelector(".nav-contact"),
+        navDocs: document.querySelector(".nav-docs"),
+        navSupport: document.querySelector(".nav-support"),
+        headerTitle: document.querySelector("header h1"),
+        headerDescription: document.querySelector("header p"),
+        chatOnlineTitle: document.querySelector(".contact-options .option:nth-child(1) h2"),
+        chatOnlineDescription: document.querySelector(".contact-options .option:nth-child(1) p"),
+        startChatButton: document.getElementById("start-chat-button"),
+        requestCallTitle: document.querySelector(".contact-options .option:nth-child(2) h2"),
+        requestCallDescription: document.querySelector(".contact-options .option:nth-child(2) p"),
+        goToContactForm: document.querySelector(".request-call"),
+        yourNameLabel: document.querySelector('label[for="name"]'),
+        yourEmailLabel: document.querySelector('label[for="email"]'),
+        yourMessageLabel: document.querySelector('label[for="message"]'),
+        sendMessageButton: document.querySelector(".control-button"),
+        chatHeader: document.querySelector(".chat-header span"),
+        chatGreeting: document.querySelector(".chat-content p")
+    };
+
+    // Cập nhật text content
+    for (const key in elements) {
+        if (elements[key]) {
+            elements[key].textContent = translations[language][key] || elements[key].textContent;
+        }
     }
 
-    // Lắng nghe sự kiện khi người dùng thay đổi ngôn ngữ
-    languageSelect.addEventListener('change', function() {
-        const selectedLanguage = languageSelect.value;
-        localStorage.setItem('selectedLanguage', selectedLanguage);
+    // Cập nhật placeholder
+    const placeholders = translations[language].placeholders;
+    if (placeholders) {
+        const inputPlaceholders = {
+            name: document.getElementById("name"),
+            email: document.getElementById("email"),
+            message: document.getElementById("message")
+        };
 
-        // Chỉ tải lại trang nếu ngôn ngữ thay đổi
-        if (savedLanguage !== selectedLanguage) {
-            updateLanguage(selectedLanguage);
+        for (const key in inputPlaceholders) {
+            if (inputPlaceholders[key]) {
+                inputPlaceholders[key].placeholder = placeholders[key];
+            }
         }
-    });
+    }
 }
 
-// Hàm cập nhật giao diện dựa trên ngôn ngữ đã chọn
-function updateLanguage(language) {
-    // Tải lại trang để áp dụng ngôn ngữ mới
-    location.reload();
-}
+
+// Áp dụng ngôn ngữ khi trang tải
+window.onload = function () {
+    const savedLanguage = localStorage.getItem("selectedLanguage") || "en";
+    const languageSelect = document.getElementById("language-select");
+
+    languageSelect.value = savedLanguage;
+    changeLanguage(savedLanguage);
+
+    languageSelect.addEventListener("change", function () {
+        const selectedLanguage = languageSelect.value;
+        localStorage.setItem("selectedLanguage", selectedLanguage);
+        changeLanguage(selectedLanguage);
+    });
+};

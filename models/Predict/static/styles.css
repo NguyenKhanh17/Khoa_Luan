@@ -61,6 +61,12 @@ body {
     transition: background-color 0.3s;
 }
 
+.navbar-menu li a.active {
+    background-color: #a5c0d1; /* Màu nền nổi bật */
+    color: #fff; /* Màu chữ trắng */
+    border-bottom: 3px solid #a5c0d1; /* Đường viền dưới */
+}
+
 .navbar-menu li a:hover {
     background-color: #0066cc;
 }
@@ -86,6 +92,35 @@ body {
     border: none;
     border-radius: 5px;
     margin-left: 10px;
+}
+
+/* Responsive Design */
+/* Hide the menu toggle button by default */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* Only show the toggle button on small screens */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .navbar-menu {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-menu.show {
+        display: flex;
+    }
 }
 
 /* Header */
@@ -164,6 +199,10 @@ header p {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     max-width: 300px;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
 }
 
 .product-card h2 {
@@ -180,11 +219,18 @@ header p {
     text-decoration: none;
     font-weight: bold;
     transition: color 0.3s;
+    align-self: flex-start; /* Đẩy dấu mũi tên về phía bên phải */
 }
 
 .product-card a:hover {
     color: #0066cc;
 }
+
+/* Đảm bảo chiều cao đồng nhất */
+.product-card {
+    min-height: 250px; /* Cài đặt chiều cao tối thiểu nếu cần */
+}
+
 
 /*footer*/
 footer {

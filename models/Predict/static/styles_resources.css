@@ -63,6 +63,13 @@ body {
     transition: background-color 0.3s ease;
 }
 
+.navbar-menu li a.active {
+    background-color: #a5c0d1; /* Màu nền nổi bật */
+    color: #fff; /* Màu chữ trắng */
+    border-bottom: 3px solid #a5c0d1; /* Đường viền dưới */
+}
+
+
 .navbar-menu li a:hover {
     background-color: #0066cc;
 }
@@ -87,6 +94,35 @@ body {
     border: none;
     border-radius: 5px;
     margin-left: 10px;
+}
+
+/* Responsive Design */
+/* Hide the menu toggle button by default */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* Only show the toggle button on small screens */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .navbar-menu {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-menu.show {
+        display: flex;
+    }
 }
 
 /* Header */
@@ -266,55 +302,60 @@ footer {
 
 .popup-content {
     position: relative;
-    background: #ffffff;
-    padding: 20px 20px;
-    border-radius: 10px;
-    width: 350px;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0); /* Màu nền gradient nhẹ */
+    padding: 25px;
+    border-radius: 15px;
+    width: 400px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid #e0e0e0; /* Viền ngoài */
     animation: scaleUp 0.3s ease; /* Hiệu ứng phóng to khi xuất hiện */
 }
 
 .popup-content .close-btn {
     position: absolute;
-    top: 8px; /* Đưa dấu X lên cao hơn */
-    right: 8px;
+    top: 15px;
+    right: 15px;
     cursor: pointer;
-    font-size: 30px;
+    font-size: 28px;
     color: #666; /* Đổi màu cho nút X */
     font-weight: bold;
     background: transparent;
     border: none;
     outline: none;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .popup-content .close-btn:hover {
-    color: #d00d0d; /* Đổi màu khi rê chuột lên nút X */
+    color: #e63946; /* Đổi màu khi rê chuột lên nút X */
+    transform: scale(1.2); /* Hiệu ứng khi hover */
 }
 
 /* Style cho nội dung popup */
 .popup-content p {
-    font-size: 25px; /* Tăng cỡ chữ */
-    color: #2a9df4; /* Đổi màu chữ thành xanh */
+    font-size: 22px; /* Cỡ chữ vừa phải */
+    color: #333; /* Màu chữ tối hơn cho dễ đọc */
     margin-bottom: 20px;
-    font-weight: 500; /* Tăng độ đậm để chữ nổi bật hơn */
-    line-height: 1.4;
+    font-weight: 500; /* Đậm hơn một chút */
+    line-height: 1.6;
 }
 
 .popup-content button {
-    background-color: #4CAF50; /* Màu nút */
+    background: linear-gradient(145deg, #4CAF50, #3e8e41); /* Màu gradient cho nút */
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: 12px 25px;
+    border-radius: 8px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .popup-content button:hover {
-    background-color: #45a049; /* Màu khi rê chuột */
+    background: linear-gradient(145deg, #3e8e41, #2e6d32); /* Màu gradient khi hover */
+    transform: translateY(-3px); /* Hiệu ứng nổi lên */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Hiệu ứng chuyển động */
@@ -327,3 +368,144 @@ footer {
     from { transform: scale(0.8); }
     to { transform: scale(1); }
 }
+
+/* Viền tinh tế */
+.popup-content {
+    border: 2px solid #2a9df4; /* Màu viền nổi bật */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+
+/* Hiệu ứng Loading */
+.loader_upload {
+    position: fixed; /* Giữ cố định */
+    top: 50%; /* Căn giữa theo chiều dọc */
+    left: 50%; /* Căn giữa theo chiều ngang */
+    transform: translate(-50%, -50%); /* Dịch về trung tâm */
+    text-align: center; /* Đặt nút Stop và nội dung ở giữa */
+    z-index: 10000;
+    display: none; /* Ẩn đi khi không cần thiết */
+}
+
+.loader_upload .progress-container {
+    position: relative;
+    width: 300px; /* Chiều rộng cố định */
+    height: 30px; /* Chiều cao cố định */
+    border-radius: 15px;
+    background: lightblue;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+    margin: 0 auto; /* Đặt giữa container */
+}
+
+.loader_upload .progress_upload {
+    width: 0;
+    height: 100%;
+    background: orange;
+    border-radius: inherit;
+    transition: width 0.2s linear;
+}
+
+.loader_upload .percentage_upload {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    line-height: 30px;
+    text-align: center;
+}
+
+.stop-btn {
+    display: block;
+    margin: 10px auto; /* Đặt nút giữa container */
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    background: #ff4c4c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.stop-btn:hover {
+    background: #e60000;
+}
+
+/* Hiệu ứng lớp phủ màn hình */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9990; /* Cao hơn mọi thành phần */
+    display: none; /* Ẩn khi không cần */
+}
+
+/* Căn chỉnh các checkbox và văn bản */
+#algorithm-form {
+    display: flex;
+    flex-direction: column; /* Các phần tử xếp theo cột */
+    gap: 15px;
+    align-items: flex-start; /* Canh trái toàn bộ */
+}
+
+/* Checkbox Style */
+#algorithm-form label {
+    display: flex; /* Sử dụng flex để căn giữa các thành phần trong label */
+    align-items: center; /* Căn giữa checkbox và chữ theo chiều dọc */
+    gap: 10px; /* Khoảng cách giữa checkbox và chữ */
+    font-size: 16px;
+    cursor: pointer;
+    line-height: 1; /* Giảm khoảng cách giữa chữ và checkbox */
+}
+
+#algorithm-form input[type="checkbox"] {
+    appearance: none;
+    background-color: #fff;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 90px;
+}
+
+#algorithm-form input[type="checkbox"]:checked {
+    background-color: #007bff;
+    border-color: #0056b3;
+    box-shadow: inset 0 0 0 3px #fff;
+}
+
+/* Nút Xác nhận */
+#confirm-algorithm-btn {
+    margin: 20px auto 0; /* Tự căn giữa theo chiều ngang */
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: block; /* Cần để căn giữa */
+    text-align: center;
+}
+
+#confirm-algorithm-btn:hover {
+    background-color: #0056b3;
+}
+
+
+
+
+
+  

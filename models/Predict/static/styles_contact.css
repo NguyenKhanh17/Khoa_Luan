@@ -65,6 +65,12 @@ body {
     transition: background-color 0.3s ease;
 }
 
+.navbar-menu li a.active {
+    background-color: #a5c0d1; /* Màu nền nổi bật */
+    color: #fff; /* Màu chữ trắng */
+    border-bottom: 3px solid #a5c0d1; /* Đường viền dưới */
+}
+
 .navbar-menu li a:hover {
     background-color: #0066cc;
 }
@@ -90,6 +96,35 @@ body {
     border: none;
     border-radius: 5px;
     margin-left: 10px;
+}
+
+/* Responsive Design */
+/* Hide the menu toggle button by default */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* Only show the toggle button on small screens */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .navbar-menu {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .navbar-menu.show {
+        display: flex;
+    }
 }
 
 /* Header */
@@ -122,6 +157,7 @@ header h1 {
 .contact-options {
     display: flex;
     justify-content: space-between;
+    align-items: stretch; /* Đảm bảo các ô có chiều cao bằng nhau */
     margin-bottom: 20px;
 }
 
@@ -133,7 +169,12 @@ header h1 {
     border: 1px solid #cfe0f3;
     border-radius: 5px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center; /* Đảm bảo nội dung căn giữa */
 }
+
 
 .contact-options .option h2 {
     color: #004c99;
@@ -141,10 +182,13 @@ header h1 {
 }
 
 .contact-options .option p {
-    margin-bottom: 15px;
+    flex-grow: 1; /* Để nội dung chữ co dãn hợp lý */
+    margin-bottom: 10px;
+    word-wrap: break-word; /* Ngắt dòng nếu nội dung quá dài */
 }
 
 .contact-options .option a {
+    margin-top: auto; /* Đẩy nút xuống cuối ô */
     text-decoration: none;
     color: white;
     background-color: #004c99;
@@ -152,6 +196,11 @@ header h1 {
     border-radius: 5px;
     display: inline-block;
     transition: background-color 0.3s ease;
+    max-width: 200px; /* Giới hạn chiều rộng nút */
+    width: 100%; /* Đảm bảo nút không nhỏ hơn nội dung */
+    text-align: center; /* Căn giữa chữ bên trong nút */
+    margin-left: auto;
+    margin-right: auto; /* Căn giữa nút trong ô */
 }
 
 .contact-options .option a:hover {
@@ -200,11 +249,17 @@ textarea.input-field {
 .control-button {
     background-color: #004c99;
     color: white;
-    padding: 10px 20px;
+    padding: 15px 15px; /* Đảm bảo kích thước nút nhất quán */
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    max-width: 150px; /* Giới hạn chiều rộng nút */
+    width: 100%; /* Đảm bảo nút không nhỏ hơn nội dung */
+    text-align: center; /* Căn giữa nội dung */
+    margin-left: auto;
+    margin-right: auto; /* Căn giữa nút trong phần tử cha */
+    font-size: 1rem;
 }
 
 .control-button:hover {

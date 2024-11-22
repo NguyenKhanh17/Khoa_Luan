@@ -13,6 +13,7 @@
             <img src="/static/front_end_images/logo.png" alt="SmartSwine Logo" class="logo">
             <span><a href="/" style="text-decoration: none;" id="navbar-title">SmartSwine</a></span>
         </div>
+        <button class="menu-toggle" aria-label="Toggle Menu">☰</button>
         <ul class="navbar-menu">
             <li><a href="/overview" class="nav-overview">Overview</a></li>
             <li><a href="/solutions" class="nav-solutions">Solutions</a></li>
@@ -25,8 +26,9 @@
             <a href="/support" class="nav-support">Support</a>
             <div class="language-select">
                 <select name="language" id="language-select" onchange="changeLanguage()">
-                    <option value="en">English</option>
-                    <option value="vi" selected>Vietnamese</option>
+                    <option value="en" selected>English</option>
+                    <option value="vi">Vietnamese</option>
+                    <option value="zh">Chinese</option>
                 </select>
             </div>
         </div>
@@ -65,6 +67,16 @@
             <div id="error-message">Database is not valid. Please upload again.</div>
         </section>
     </main>
+
+    <div class="overlay"></div>
+    <div class="loader_upload">
+        <div class="progress-container">
+            <div class="progress_upload"></div>
+            <div class="percentage_upload">0%</div>
+        </div>
+        <button class="stop-btn">Stop</button>
+    </div>
+
 
     <footer>
         <p>&copy; 2024 SmartSwine. All rights reserved.</p>
