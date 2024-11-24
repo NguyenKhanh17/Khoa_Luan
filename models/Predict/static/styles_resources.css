@@ -437,6 +437,34 @@ footer {
     background: #e60000;
 }
 
+/* Hiệu ứng gợn sóng */
+.progress_upload.wave-effect::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -60px;
+    width: 80px; /* Rộng hơn để tạo cảm giác mềm mại */
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0) 0%, 
+        rgba(255, 255, 255, 0.4) 50%, 
+        rgba(255, 255, 255, 0) 100%);
+    opacity: 0.8;
+    filter: blur(4px); /* Làm mờ hơn để tạo chiều sâu */
+    animation: wave 1.2s infinite ease-in-out;
+}
+
+@keyframes wave {
+    from {
+        left: -60px;
+    }
+    to {
+        left: 100%;
+    }
+}
+
+
+
 /* Hiệu ứng lớp phủ màn hình */
 .overlay {
     position: fixed;
@@ -504,6 +532,118 @@ footer {
     background-color: #0056b3;
 }
 
+
+/* CSS cho hiệu ứng loading tròn */
+.ring {
+    position: fixed; /* Giữ ở giữa màn hình ngay cả khi cuộn */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150px;
+    height: 150px;
+    background: transparent;
+    border: 3px solid #e0e0e0; /* Màu viền nhạt hơn cho nền trắng */
+    border-radius: 50%;
+    text-align: center;
+    line-height: 150px;
+    font-family: sans-serif;
+    font-size: 20px;
+    color: #4a4a4a; /* Màu chữ đậm hơn */
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Ánh sáng nhẹ cho chữ */
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    z-index: 10000; /* Đảm bảo luôn nằm trên các thành phần khác */
+}
+
+.ring:before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 100%;
+    height: 100%;
+    border: 3px solid transparent;
+    border-top: 3px solid #1274e3; /* Màu xanh nhạt cho đường xoay */
+    border-right: 3px solid #0f73e6;
+    border-radius: 50%;
+    animation: animateC 2s linear infinite;
+}
+
+/* Hiệu ứng chấm tròn xoay */
+.loading-span {
+    display: block;
+    position: absolute;
+    top: calc(50% - 2px);
+    left: 50%;
+    width: 50%;
+    height: 4px;
+    background: transparent;
+    transform-origin: left;
+    animation: animate 2s linear infinite;
+}
+
+.loading-span:before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #4a90e2; /* Màu xanh nhẹ cho chấm tròn */
+    top: -6px;
+    right: -8px;
+    box-shadow: 0 0 15px #4a90e2; /* Ánh sáng xanh nhạt cho chấm tròn */
+}
+
+/* Animation cho vòng xoay */
+@keyframes animateC {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Animation cho thanh span */
+@keyframes animate {
+    0% {
+        transform: rotate(45deg);
+    }
+    100% {
+        transform: rotate(405deg);
+    }
+}
+
+/* Toàn bộ trang có hiệu ứng overlay */
+body.loading {
+    overflow: hidden; /* Ngăn cuộn khi đang loading */
+    position: relative;
+}
+
+body.loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8); /* Lớp nền mờ trắng */
+    z-index: 9998; /* Đảm bảo nằm dưới hiệu ứng */
+}
+
+#overlay_ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8); /* Màu nền mờ trắng */
+    z-index: 9990; /* Lớp phủ luôn nằm trên cùng */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
 
 

@@ -16,6 +16,7 @@ from ML_function import data_standardization
 from ML_Database import read_data_from_mysql
 from ML_Database import write_data_to_mysql
 from ML_Database import check_table_exist
+from ML_Database import list_table_contains_multiple_phrase
 from ML_Database import list_table_contains_phrase
 
 import matplotlib.pyplot as plt  # Thêm thư viện vẽ đồ thị
@@ -129,9 +130,13 @@ def paint(data, data_new, pig_id, first_day, last_day, prediction_type):
         difference_df = plot_weight(data, pig_id, first_day, last_day, weight_predictions_data, prediction_type)  # Vẽ đồ thị
         return difference_df
     
-def paint_metrics(algorithm):
-    data_weight_metrics = read_data_from_mysql(f"output_{algorithm}_default_weight_error")
-    data_dfi_metrics = read_data_from_mysql(f"output_{algorithm}_default_dfi_error")
+def paint_metrics(algorithm, session_id_mysql):
+    if session_id_mysql is not None:
+        data_weight_metrics = read_data_from_mysql(f"output_{algorithm}_user_weight_error_{session_id_mysql}")
+        data_dfi_metrics = read_data_from_mysql(f"output_{algorithm}_user_dfi_error_{session_id_mysql}")
+    else:
+        data_weight_metrics = read_data_from_mysql(f"output_{algorithm}_default_weight_error")
+        data_dfi_metrics = read_data_from_mysql(f"output_{algorithm}_default_dfi_error")
     
     # Lấy dữ liệu từ DataFrame
     labels = ['MAE', 'MSE', 'RMSE', 'R²']
@@ -181,12 +186,12 @@ def paint_metrics(algorithm):
     
     
 #******************************************************3*********************************************************
-def complete_data(pig_id, first_day, last_day, algorithm, status_new_data, session_new_data):
+def complete_data(pig_id, first_day, last_day, algorithm, session_new_data):
     if not isinstance(first_day, int) or not isinstance(last_day, int) or first_day > last_day or last_day < 1 or first_day < 1:
         print("Lỗi: first_day hoặc last_day không hợp lệ")
         return 400
     
-    if status_new_data:
+    if session_new_data is not None:
         if check_table_exist(f"output_{algorithm}_user_weight_{pig_id}_{session_new_data}") == False:
             print(f"Không có file weight dự đoán cho con lợn {pig_id}")
             return 400
@@ -209,7 +214,7 @@ def complete_data(pig_id, first_day, last_day, algorithm, status_new_data, sessi
 
     
     if last_day > weight_data['age'].max() or last_day > dfi_data['age'].max():
-        Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algorithm, status_new_data, session_new_data)
+        Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algorithm, session_new_data)
     return 200
 
 def read_csv_file(data_path):
@@ -248,6 +253,19 @@ def test_data(data_path):
 #***************************************************************************************************************************
 #Hàm khởi tạo dữ liệu cho data mới
 def Create_data_new(first_day, last_day, algorithm, session_new_data):
+    if algorithm == "Algorithm1":
+        algorithm = "algorithm1"
+    elif algorithm == "Algorithm2":
+        algorithm = "algorithm2"
+    elif algorithm == "Algorithm3":
+        algorithm = "algorithm3"
+    elif algorithm == "Algorithm4":
+        algorithm = "algorithm4"
+    elif algorithm == "Algorithm5":
+        algorithm = "algorithm5"
+    elif algorithm == "Algorithm6":
+        algorithm = "algorithm6"
+        
     if session_new_data is not None:
         if check_table_exist(f"input_user_{session_new_data}"):
             data_init = read_data_from_mysql(f"input_user_{session_new_data}")
@@ -263,209 +281,330 @@ def Create_data_new(first_day, last_day, algorithm, session_new_data):
             print("Data NULL")
             return 400
         
-        Create_dfi_ALL_data_begin(data, algorithm, first_day, last_day, session_new_data)
-        Create_weight_ALL_data_begin(data, algorithm, first_day, last_day, session_new_data)
+        create_status_weight =  Create_ALL_data_begin_full(data, algorithm, first_day, last_day, session_new_data, "weight")
+        create_status_dfi =  Create_ALL_data_begin_full(data, algorithm, first_day, last_day, session_new_data, "dfi")
+        if create_status_dfi != 200 or create_status_weight != 200:
+            return 400
         return 200
     else:
         return 400
 #***************************************************************************************************************************
 #***************************************************************************************************************************
+#Hàm xử lý dữ liệu khi reject
+
     
-def reject(pig_id, first_day, last_day, algorithm, session_new_data):
-    status_new_data = False
-    if session_new_data is not None:
-        if check_table_exist(f"input_user_{session_new_data}"):
-            data_init = read_data_from_mysql(f"input_user_{session_new_data}")
-            status_new_data = True
-        else:
-            data_init = read_data_from_mysql("input_default_data")
-            status_new_data = False     
-    else:
-        data_init = read_data_from_mysql("input_default_data")
-        
-    data, status_data = data_standardization(data_init)
-    if not status_data:
-        return 400, None, None
-    
-    if pig_id not in data['id'].values:
-        return 400, None, None  # Trả về mã lỗi nếu pig_id không hợp lệ
-    
-    # hoàn thiện data
-    data_status = complete_data(pig_id, first_day, last_day, algorithm, status_new_data, session_new_data)
-    
-    if data_status == 400:
-        return 400, None, None
-    
-    if status_new_data:
-        name_table_dfi = f"output_{algorithm}_user_dfi"
-        if check_table_exist(f"{name_table_dfi}_{pig_id}_{session_new_data}") == False:
-            print(f"Không có file dfi dự đoán cho con lợn {pig_id}")
+def reject(pig_id, first_day, last_day, algorithm, session_id_mysql):
+    try:
+        table_prefix = "input_user_" if session_id_mysql else "input_default_data"
+        input_table = f"{table_prefix}{session_id_mysql}" if session_id_mysql else table_prefix
+        if not check_table_exist(input_table):
+            print(f"Table không tồn tại: {input_table}")
             return 400, None, None
-        else:
-            data_dfi = read_data_from_mysql(f"{name_table_dfi}_{pig_id}_{session_new_data}")
             
-        name_table_weight = f"output_{algorithm}_user_weight"
-        if check_table_exist(f"{name_table_weight}_{pig_id}_{session_new_data}") == False:
-            print(f"Không có file weight dự đoán cho con lợn {pig_id}")
+        data_init = read_data_from_mysql(input_table)
+        data, status_data = data_standardization(data_init)
+        
+        data_init.to_csv(os.path.join("includes", "data_init.csv"), index=False)
+        
+        if not status_data or pig_id not in data['id'].values:
+            print("Dữ liệu không hợp lệ hoặc không tìm thấy pig_id.")
             return 400, None, None
-        else:
-            data_weight = read_data_from_mysql(f"{name_table_weight}_{pig_id}_{session_new_data}")
-    else:
-        name_table_dfi = f"output_{algorithm}_default_dfi"
-        if check_table_exist(f"{name_table_dfi}_{pig_id}") == False:
-            print(f"Không có file dfi dự đoán cho con lợn {pig_id}")
+        
+        # hoàn thiện data
+        data_status = complete_data(pig_id, first_day, last_day, algorithm, session_id_mysql)
+        
+        if data_status == 400:
             return 400, None, None
+        
+        if session_id_mysql is not None:
+            name_table_dfi = f"output_{algorithm}_user_dfi"
+            if check_table_exist(f"{name_table_dfi}_{pig_id}_{session_id_mysql}") == False:
+                print(f"Không có file dfi dự đoán cho con lợn {pig_id}")
+                return 400, None, None
+            else:
+                data_dfi = read_data_from_mysql(f"{name_table_dfi}_{pig_id}_{session_id_mysql}")
+                
+            name_table_weight = f"output_{algorithm}_user_weight"
+            if check_table_exist(f"{name_table_weight}_{pig_id}_{session_id_mysql}") == False:
+                print(f"Không có file weight dự đoán cho con lợn {pig_id}")
+                return 400, None, None
+            else:
+                data_weight = read_data_from_mysql(f"{name_table_weight}_{pig_id}_{session_id_mysql}")
         else:
-            data_dfi = read_data_from_mysql(f"{name_table_dfi}_{pig_id}")
+            name_table_dfi = f"output_{algorithm}_default_dfi"
+            if check_table_exist(f"{name_table_dfi}_{pig_id}") == False:
+                print(f"Không có file dfi dự đoán cho con lợn {pig_id}")
+                return 400, None, None
+            else:
+                data_dfi = read_data_from_mysql(f"{name_table_dfi}_{pig_id}")
+                
+            name_table_weight = f"output_{algorithm}_default_weight"
+            if check_table_exist(f"{name_table_weight}_{pig_id}") == False:
+                print(f"Không có file weight dự đoán cho con lợn {pig_id}")
+                return 400, None, None
+            else:
+                data_weight = read_data_from_mysql(f"{name_table_weight}_{pig_id}")
+        
             
-        name_table_weight = f"output_{algorithm}_default_weight"
-        if check_table_exist(f"{name_table_weight}_{pig_id}") == False:
-            print(f"Không có file weight dự đoán cho con lợn {pig_id}")
-            return 400, None, None
+        paint(data, data_dfi, pig_id, first_day, last_day, "dfi")
+        barchart_data = paint(data, data_weight, pig_id, first_day, last_day, "weight")
+        paint_metrics(algorithm, session_id_mysql)
+
+        session_id_mysql_str = str(session_id_mysql)
+        # Tạo donut_data từ growth_weight_data
+        growth_weight_data = []
+        if session_id_mysql is not None:
+            for file in list_table_contains_multiple_phrase(name_table_weight, session_id_mysql_str):
+                if check_table_exist(file) and 'error' not in file:
+                    weight_file = read_data_from_mysql(file)
+                    print(file)
+                    if not weight_file[weight_file['age'] == first_day].empty:
+                        first_day_weight = weight_file[weight_file['age'] == first_day]['weight'].iloc[0]  
+                    else:
+                        min_age = weight_file[weight_file['weight'].notna()]['age'].min()
+                        first_day_weight = weight_file[weight_file['age'] == min_age]['weight'].iloc[0]
+                            
+                    if not weight_file[weight_file['age'] == last_day].empty:
+                        last_day_weight = weight_file[weight_file['age'] == last_day]['weight'].iloc[0]  
+                    else: 
+                        max_age = weight_file[weight_file['weight'].notna()]['age'].max()
+                        last_day_weight = weight_file[weight_file['age'] == max_age]['weight'].iloc[0]
+                            
+                    weight_diff = last_day_weight - first_day_weight
+                    growth_weight_data.append({'id': file.split('_')[-1].split('.')[0], 'value': weight_diff})
+                    
         else:
-            data_weight = read_data_from_mysql(f"{name_table_weight}_{pig_id}")
-    
+            for file in list_table_contains_phrase(name_table_weight):
+                if check_table_exist(file) and 'error' not in file:
+                    weight_file = read_data_from_mysql(file)
+                    print(file)
+                    if not weight_file[weight_file['age'] == first_day].empty:
+                        first_day_weight = weight_file[weight_file['age'] == first_day]['weight'].iloc[0]  
+                    else:
+                        min_age = weight_file[weight_file['weight'].notna()]['age'].min()
+                        first_day_weight = weight_file[weight_file['age'] == min_age]['weight'].iloc[0]
+                            
+                    if not weight_file[weight_file['age'] == last_day].empty:
+                        last_day_weight = weight_file[weight_file['age'] == last_day]['weight'].iloc[0]  
+                    else: 
+                        max_age = weight_file[weight_file['weight'].notna()]['age'].max()
+                        last_day_weight = weight_file[weight_file['age'] == max_age]['weight'].iloc[0]
+                            
+                    weight_diff = last_day_weight - first_day_weight
+                    growth_weight_data.append({'id': file.split('_')[-1].split('.')[0], 'value': weight_diff})
+                    
+        donut_data = pd.DataFrame(growth_weight_data)
+        donut_data = donut_data[['value']]
+        donut_data.to_csv(os.path.join("includes", "donut_data.csv"), index=False)
+
+        #Tính toán giá trị toàn bộ đàn lợn 
         
-    paint(data, data_dfi, pig_id, first_day, last_day, "dfi")
-    barchart_data = paint(data, data_weight, pig_id, first_day, last_day, "weight")
-    paint_metrics(algorithm)
-
-    # Tạo donut_data từ growth_weight_data
-    growth_weight_data = []
-    for file in list_table_contains_phrase(name_table_weight):
-        if check_table_exist(file) and 'error' not in file:
-            weight_file = read_data_from_mysql(file)
-            print(file)
-            if not weight_file[weight_file['age'] == first_day].empty:
-                first_day_weight = weight_file[weight_file['age'] == first_day]['weight'].iloc[0]  
-            else:
-                min_age = weight_file[weight_file['weight'].notna()]['age'].min()
-                first_day_weight = weight_file[weight_file['age'] == min_age]['weight'].iloc[0]
-                
-            if not weight_file[weight_file['age'] == last_day].empty:
-                last_day_weight = weight_file[weight_file['age'] == last_day]['weight'].iloc[0]  
-            else: 
-                max_age = weight_file[weight_file['weight'].notna()]['age'].max()
-                last_day_weight = weight_file[weight_file['age'] == max_age]['weight'].iloc[0]
-                
-            weight_diff = last_day_weight - first_day_weight
-            growth_weight_data.append({'id': file.split('_')[-1].split('.')[0], 'value': weight_diff})
-            
-    donut_data = pd.DataFrame(growth_weight_data)
-    donut_data = donut_data[['value']]
-    donut_data.to_csv(os.path.join("includes", "donut_data.csv"), index=False)
-    # donut_data['id'] = donut_data['id'].astype(np.int64)
-
-    #Tính toán giá trị toàn bộ đàn lợn 
-    
-    summary_weight_data = pd.DataFrame(columns=['id', 'min', 'max', 'mean', 'sd'])
-    for file in list_table_contains_phrase(name_table_weight):  
-        if check_table_exist(file) and 'error' not in file:
-            weight_file = read_data_from_mysql(file)
-            filtered_weights = weight_file[(weight_file['age'] >= first_day) & (weight_file['age'] <= last_day)]
-            if not filtered_weights.empty:
-                min_weight = filtered_weights['weight'].min()
-                max_weight = filtered_weights['weight'].max()
-                mean_weight = filtered_weights['weight'].mean()
-                sd_weight = filtered_weights['weight'].std()
-            else:
-                min_weight = None
-                max_weight = None
-                mean_weight = None
-                sd_weight = None
-                
-            summary_weight_data = pd.concat([summary_weight_data, pd.DataFrame({
-                'id': file.split('_')[-1].split('.')[0],
-                'min': min_weight,
-                'max': max_weight,
-                'mean': mean_weight,
-                'sd': sd_weight
-            }, index=[0])], ignore_index=True)
-     
-    summary_all_weight_data = pd.DataFrame(columns=['min', 'max', 'mean', 'sd'])
-    summary_all_weight_data = pd.concat([summary_all_weight_data, pd.DataFrame({
-        'min': [summary_weight_data['min'].mean()],
-        'max': [summary_weight_data['max'].mean()],
-        'mean': [summary_weight_data['mean'].mean()],
-        'sd': [summary_weight_data['sd'].mean()]
-    })], ignore_index=True)
-    
-    if status_new_data:
-        status_write =  write_data_to_mysql("renew", "summary_all", "user", "weight", pig_id, algorithm, session_new_data, data = summary_weight_data)
-    else:
-        status_write =  write_data_to_mysql("renew", "summary_all", "default", "weight", pig_id, algorithm, "None", data = summary_weight_data)
-    if status_write == 200:
-        print("Hoàn thành ghi summary_all_weight cho tất cả con lợn")
+        summary_weight_data = pd.DataFrame(columns=['id', 'min', 'max', 'mean', 'sd'])
+        if session_id_mysql is not None:
+            for file in list_table_contains_multiple_phrase(name_table_weight, session_id_mysql_str):
+                if check_table_exist(file) and 'error' not in file:
+                    weight_file = read_data_from_mysql(file)
+                    filtered_weights = weight_file[(weight_file['age'] >= first_day) & (weight_file['age'] <= last_day)]
+                    if not filtered_weights.empty:
+                        min_weight = filtered_weights['weight'].min()
+                        max_weight = filtered_weights['weight'].max()
+                        mean_weight = filtered_weights['weight'].mean()
+                        sd_weight = filtered_weights['weight'].std()
+                    else:
+                        min_weight = None
+                        max_weight = None
+                        mean_weight = None
+                        sd_weight = None
+                    
+                    id_str = file.split('_')[4]  # Lấy số ở vị trí thứ 3
+                    if id_str.isdigit():
+                        id_int = int(id_str)
+                    else:
+                        print(f"Không thể chuyển đổi ID: {id_str} trong file: {file}")          
+                        continue
+                    
+                    if all(value is not None and not pd.isna(value) for value in [min_weight, max_weight, mean_weight, sd_weight]):
+                        summary_weight_data = pd.concat([summary_weight_data, pd.DataFrame({
+                            'id': int(id_int),
+                            'min': [min_weight],
+                            'max': [max_weight],
+                            'mean': [mean_weight],
+                            'sd': [sd_weight]
+                        }, index=[0])], ignore_index=True)
+                    else:
+                        continue
+        else:
+            for file in list_table_contains_phrase(name_table_weight):
+                if check_table_exist(file) and 'error' not in file:
+                    weight_file = read_data_from_mysql(file)
+                    filtered_weights = weight_file[(weight_file['age'] >= first_day) & (weight_file['age'] <= last_day)]
+                    if not filtered_weights.empty:
+                        min_weight = filtered_weights['weight'].min()
+                        max_weight = filtered_weights['weight'].max()
+                        mean_weight = filtered_weights['weight'].mean()
+                        sd_weight = filtered_weights['weight'].std()
+                    else:
+                        min_weight = None
+                        max_weight = None
+                        mean_weight = None
+                        sd_weight = None
+                    
+                    id_str = file.split('_')[-1].split('.')[0]
+                    if id_str.isdigit():
+                        id_int = int(id_str)
+                    else:
+                        print(f"Không thể chuyển đổi ID: {id_str} trong file: {file}")
+                        continue
+                    if all(value is not None and not pd.isna(value) for value in [min_weight, max_weight, mean_weight, sd_weight]):
+                        summary_weight_data = pd.concat([summary_weight_data, pd.DataFrame({
+                            'id': int(id_int),
+                            'min': [min_weight],
+                            'max': [max_weight],
+                            'mean': [mean_weight],
+                            'sd': [sd_weight]
+                        }, index=[0])], ignore_index=True)
+                    else:
+                        continue
         
-    if status_new_data:
-        status_write = write_data_to_mysql("renew", "summary_mean", "user", "weight", pig_id, algorithm, session_new_data, data = summary_all_weight_data)
-    else:
-        status_write = write_data_to_mysql("renew", "summary_mean", "default", "weight", pig_id, algorithm, "None", data = summary_all_weight_data)
-    if status_write == 200:
-        print("Hoàn thành ghi summary_mean_weight cho tất cả con lợn")
-    
-    
-
-    
-    summary_dfi_data = pd.DataFrame(columns=['id', 'min', 'max', 'mean', 'sd'])
-    for file in list_table_contains_phrase(name_table_dfi):
-        if check_table_exist(file) and 'error' not in file:
-            dfi_file = read_data_from_mysql(file)
-            filtered_dfi = dfi_file[(dfi_file['age'] >= first_day) & (dfi_file['age'] <= last_day)]
-            if not filtered_dfi.empty:
-                min_dfi = filtered_dfi['dfi'].min()
-                max_dfi = filtered_dfi['dfi'].max()
-                mean_dfi = filtered_dfi['dfi'].mean()
-                sd_dfi = filtered_dfi['dfi'].std()
-            else:
-                min_dfi = None
-                max_dfi = None
-                mean_dfi = None
-                sd_dfi = None
-                
-            summary_dfi_data = pd.concat([summary_dfi_data, pd.DataFrame({
-                'id': [file.split('_')[-1].split('.')[0]],
-                'min': [min_dfi],
-                'max': [max_dfi],
-                'mean': [mean_dfi],
-                'sd': [sd_dfi]
-            })], ignore_index=True)
-    
-    summary_all_dfi_data = pd.DataFrame(columns=['min', 'max', 'mean', 'sd'])
-    summary_all_dfi_data = pd.concat([summary_all_dfi_data, pd.DataFrame({
-        'min': [summary_dfi_data['min'].mean()],
-        'max': [summary_dfi_data['max'].mean()],
-        'mean': [summary_dfi_data['mean'].mean()],
-        'sd': [summary_dfi_data['sd'].mean()]
-    })], ignore_index=True)
-    
-    if status_new_data:
-        status_write = write_data_to_mysql("renew", "summary_all", "user", "dfi", pig_id, algorithm, session_new_data, data = summary_dfi_data)
-    else:
-        status_write = write_data_to_mysql("renew", "summary_all", "default", "dfi", pig_id, algorithm, "None", data = summary_dfi_data)
-    if status_write == 200:
-        print("Hoàn thành ghi summary_all_dfi cho tất cả con lợn")
+        summary_all_weight_data = pd.DataFrame(columns=['min', 'max', 'mean', 'sd'])
+        summary_all_weight_data = pd.concat([summary_all_weight_data, pd.DataFrame({
+            'min': [summary_weight_data['min'].mean()],
+            'max': [summary_weight_data['max'].mean()],
+            'mean': [summary_weight_data['mean'].mean()],
+            'sd': [summary_weight_data['sd'].mean()]
+        })], ignore_index=True)
+        summary_weight_data.to_csv(os.path.join("includes", "summary_weight_data.csv"), index=False)
+        summary_all_weight_data.to_csv(os.path.join("includes", "summary_all_weight_data.csv"), index=False)
         
-    if status_new_data:
-        status_write = write_data_to_mysql("renew", "summary_mean", "user", "dfi", pig_id, algorithm, session_new_data, data = summary_all_dfi_data)
-    else:
-        status_write = write_data_to_mysql("renew", "summary_mean", "default", "dfi", pig_id, algorithm, "None", data = summary_all_dfi_data)
-    if status_write == 200:
-        print("Hoàn thành ghi summary_mean_dfi cho tất cả con lợn")
-
-    
-    if barchart_data.empty or donut_data.empty:
-        print("data null")
-    else:
-        status_write = write_data_to_mysql("renew", "barchart", "default", "weight", pig_id, algorithm, "None", data = barchart_data)   
+        if session_id_mysql is not None:
+            status_write =  write_data_to_mysql("renew", "summary_all", "user", "weight", pig_id, algorithm, session_id_mysql_str, data = summary_weight_data)
+        else:
+            status_write =  write_data_to_mysql("renew", "summary_all", "default", "weight", pig_id, algorithm, "None", data = summary_weight_data)
         if status_write == 200:
-            print("Hoàn thành ghi barchart cho tất cả con lợn")
+            print("Hoàn thành ghi summary_all_weight cho tất cả con lợn")
             
-        status_write = write_data_to_mysql("renew", "donut", "default", "weight", pig_id, algorithm, "None", data = donut_data)
+        if session_id_mysql is not None:
+            status_write = write_data_to_mysql("renew", "summary_mean", "user", "weight", pig_id, algorithm, session_id_mysql_str, data = summary_all_weight_data)
+        else:
+            status_write = write_data_to_mysql("renew", "summary_mean", "default", "weight", pig_id, algorithm, "None", data = summary_all_weight_data)
         if status_write == 200:
-            print("Hoàn thành ghi donut cho tất cả con lợn")
-    
-    return 200, barchart_data, donut_data  # Trả về mã thành công và dữ liệu        
+            print("Hoàn thành ghi summary_mean_weight cho tất cả con lợn")
+        
+        
+
+        
+        summary_dfi_data = pd.DataFrame(columns=['id', 'min', 'max', 'mean', 'sd'])
+        if session_id_mysql is not None:
+            for file in list_table_contains_multiple_phrase(name_table_dfi, session_id_mysql_str):
+                if check_table_exist(file) and 'error' not in file:
+                    dfi_file = read_data_from_mysql(file)
+                    filtered_dfi = dfi_file[(dfi_file['age'] >= first_day) & (dfi_file['age'] <= last_day)]
+                    if not filtered_dfi.empty:
+                        min_dfi = filtered_dfi['dfi'].min()
+                        max_dfi = filtered_dfi['dfi'].max()
+                        mean_dfi = filtered_dfi['dfi'].mean()
+                        sd_dfi = filtered_dfi['dfi'].std()
+                    else:
+                        min_dfi = None
+                        max_dfi = None
+                        mean_dfi = None
+                        sd_dfi = None
+                          
+                    id_str = file.split('_')[4]  # Lấy số ở vị trí thứ 3
+                    if id_str.isdigit():
+                        id_int = int(id_str)
+                    else:
+                        print(f"Không thể chuyển đổi ID: {id_str} trong file: {file}") 
+                        continue
+                    
+                    if (id_int == 999):
+                        print("min_dfi, max_dfi, mean_dfi, sd_dfi: ", min_dfi, max_dfi, mean_dfi, sd_dfi)
+                        
+                    if all(value is not None and not pd.isna(value) for value in [min_dfi, max_dfi, mean_dfi, sd_dfi]):
+                        summary_dfi_data = pd.concat([summary_dfi_data, pd.DataFrame({
+                            'id': int(id_int),
+                            'min': [min_dfi],
+                            'max': [max_dfi],
+                            'mean': [mean_dfi],
+                            'sd': [sd_dfi]
+                        }, index=[0])], ignore_index=True)
+                    else:
+                        continue
+        else:
+            for file in list_table_contains_phrase(name_table_dfi):
+                if check_table_exist(file) and 'error' not in file:
+                    dfi_file = read_data_from_mysql(file)
+                    filtered_dfi = dfi_file[(dfi_file['age'] >= first_day) & (dfi_file['age'] <= last_day)]
+                    if not filtered_dfi.empty:
+                        min_dfi = filtered_dfi['dfi'].min()
+                        max_dfi = filtered_dfi['dfi'].max()
+                        mean_dfi = filtered_dfi['dfi'].mean()
+                        sd_dfi = filtered_dfi['dfi'].std()
+                    else:
+                        min_dfi = None
+                        max_dfi = None
+                        mean_dfi = None
+                        sd_dfi = None
+                    
+                    id_str = file.split('_')[-1].split('.')[0]
+                    if id_str.isdigit():
+                        id_int = int(id_str)
+                    else:
+                        print(f"Không thể chuyển đổi ID: {id_str} trong file: {file}") 
+                        continue
+                    
+                    if all(value is not None and not pd.isna(value) for value in [min_dfi, max_dfi, mean_dfi, sd_dfi]):
+                        summary_dfi_data = pd.concat([summary_dfi_data, pd.DataFrame({
+                            'id': int(id_int),
+                            'min': [min_dfi],
+                            'max': [max_dfi],
+                            'mean': [mean_dfi],
+                            'sd': [sd_dfi]
+                        }, index=[0])], ignore_index=True)
+                    else:
+                        continue
+        
+        summary_all_dfi_data = pd.DataFrame(columns=['min', 'max', 'mean', 'sd'])
+        summary_all_dfi_data = pd.concat([summary_all_dfi_data, pd.DataFrame({
+            'min': [summary_dfi_data['min'].mean()],
+            'max': [summary_dfi_data['max'].mean()],
+            'mean': [summary_dfi_data['mean'].mean()],
+            'sd': [summary_dfi_data['sd'].mean()]
+        })], ignore_index=True)
+        
+        summary_dfi_data.to_csv(os.path.join("includes", "summary_dfi_data.csv"), index=False)
+        summary_all_dfi_data.to_csv(os.path.join("includes", "summary_all_dfi_data.csv"), index=False)
+        
+        if session_id_mysql is not None:
+            status_write = write_data_to_mysql("renew", "summary_all", "user", "dfi", pig_id, algorithm, session_id_mysql, data = summary_dfi_data)
+        else:
+            status_write = write_data_to_mysql("renew", "summary_all", "default", "dfi", pig_id, algorithm, "None", data = summary_dfi_data)
+        if status_write == 200:
+            print("Hoàn thành ghi summary_all_dfi cho tất cả con lợn")
+            
+        if session_id_mysql is not None:
+            status_write = write_data_to_mysql("renew", "summary_mean", "user", "dfi", pig_id, algorithm, session_id_mysql, data = summary_all_dfi_data)
+        else:
+            status_write = write_data_to_mysql("renew", "summary_mean", "default", "dfi", pig_id, algorithm, "None", data = summary_all_dfi_data)
+        if status_write == 200:
+            print("Hoàn thành ghi summary_mean_dfi cho tất cả con lợn")
+
+        
+        if barchart_data.empty or donut_data.empty:
+            print("data null")
+        else:
+            status_write = write_data_to_mysql("renew", "barchart", "default", "weight", pig_id, algorithm, "None", data = barchart_data)   
+            if status_write == 200:
+                print("Hoàn thành ghi barchart cho tất cả con lợn")
+                
+            status_write = write_data_to_mysql("renew", "donut", "default", "weight", pig_id, algorithm, "None", data = donut_data)
+            if status_write == 200:
+                print("Hoàn thành ghi donut cho tất cả con lợn")
+        
+        return 200, barchart_data, donut_data  # Trả về mã thành công và dữ liệu 
+    except Exception as e:
+        print(f"Lỗi trong hàm reject: {str(e)}")
+        return 400, None, None       
         
         
         
@@ -515,57 +654,52 @@ def Create_ALL_data_begin(algorithm, type_predict):
                     if status_write == 200:
                         print(f"Hoàn thành thêm độ chính xác cho thuật toán {algorithm} (weight)")
 
-# 100 dfi đầu tiên
-def Create_dfi_ALL_data_begin(data, algorithm, first_day, last_day, session_user):
+# 100 dữ liệu đầu tiên cho data mới
+def Create_ALL_data_begin_full(data, algorithm, first_day, last_day, session_user, target_type):
+    if target_type not in ['dfi', 'weight']:
+        raise ValueError("target_type must be 'dfi' or 'weight'")
+    
     id_data = data['id'].unique()
     for pig_id in id_data:
         min_age = data[data['id'] == pig_id]['age'].min()
         if min_age > first_day: 
             min_age = first_day
-        max_age = last_day
-            
-        dfi_results, metrics_DFI = multi_predict_DFI(data, pig_id, min_age, max_age, algorithm)
-            
-        if isinstance(dfi_results, pd.DataFrame) and not dfi_results.empty:
-            status_write = write_data_to_mysql("renew", "output", "user", "dfi", pig_id, algorithm, session_user, data = dfi_results)
-            if status_write == 200:
-                print(f"Hoàn thành giai đoạn 1 thêm 100 ngày đầu tiên cho con lợn {pig_id} (dfi) thuat toan {algorithm}")
-            
-        if isinstance(metrics_DFI, pd.DataFrame) and not metrics_DFI.empty and check_table_exist(f'output_{algorithm}_user_dfi_error_{session_user}') == False:
-            status_write = write_data_to_mysql("renew", "error", "user", "dfi", pig_id, algorithm, session_user, data = metrics_DFI)
-            if status_write == 200:
-                print(f"Hoàn thành thêm độ chính xác cho thuật toán {algorithm} (dfi)")
-            
-    print(f"Hoàn thành thêm dfi từ ngày {first_day} đến ngày {last_day}")
+        max_age = int(last_day)
+        min_age = int(min_age)
         
-# 100 weight đầu tiên        
-def Create_weight_ALL_data_begin(data, algorithm, first_day, last_day, session_user):
-    id_data = data['id'].unique()
-    for pig_id in id_data:
-        min_age = data[data['id'] == pig_id]['age'].min()
-        if min_age > first_day: 
-            min_age = first_day
-        max_age = last_day
-                
-        weight_results, metrics_weight = multi_predict_Weight(data, pig_id, min_age, max_age, algorithm)
-            
-        if isinstance(weight_results, pd.DataFrame) and not weight_results.empty:
-            status_write = write_data_to_mysql("renew", "output", "user", "weight", pig_id, algorithm, session_user, data = weight_results)
-            if status_write == 200:
-                print(f"Hoàn thành giai đoạn 2 thêm 100 ngày đầu tiên cho con lợn {pig_id} (weight) thuat toan {algorithm}")
+        # Gọi hàm dự đoán tương ứng
+        try:
+            if target_type == 'dfi':
+                results, metrics = multi_predict_DFI(data, pig_id, min_age, max_age, algorithm)
+            else:
+                results, metrics = multi_predict_Weight(data, pig_id, min_age, max_age, algorithm)
+        except Exception as e:
+            print(f"Lỗi khi dự đoán {target_type} cho lợn {pig_id}: {e}")
+            return 401
         
-        if isinstance(metrics_weight, pd.DataFrame) and not metrics_weight.empty and check_table_exist(f'output_{algorithm}_user_weight_error_{session_user}') == False:
-            status_write = write_data_to_mysql("renew", "error", "user", "weight", pig_id, algorithm, session_user, data = metrics_weight)
-            if status_write == 200:
-                print(f"Hoàn thành thêm độ chính xác cho thuật toán {algorithm} (weight)")
-            
-    print(f"Hoàn thành thêm weight từ ngày {first_day} đến ngày {last_day}")
-
+        # Ghi kết quả dự đoán vào MySQL
+        if isinstance(results, pd.DataFrame) and not results.empty:
+            status_write = write_data_to_mysql("renew", "output", "user", target_type, pig_id, algorithm, session_user, data=results)
+            if status_write != 200:
+                print(f"Lỗi ghi dữ liệu {target_type} vào MySQL cho lợn {pig_id}.")
+                return 401
+            print(f"Hoàn thành thêm 100 ngày đầu tiên cho con lợn {pig_id} ({target_type}) thuật toán {algorithm}")
+        
+        # Ghi độ chính xác (metrics) vào MySQL
+        if isinstance(metrics, pd.DataFrame) and not metrics.empty and not check_table_exist(f'output_{algorithm}_user_{target_type}_error_{session_user}'):
+            status_write = write_data_to_mysql("renew", "error", "user", target_type, pig_id, algorithm, session_user, data=metrics)
+            if status_write != 200:
+                print(f"Lỗi ghi độ chính xác {target_type} vào MySQL cho lợn {pig_id}.")
+                return 401
+            print(f"Hoàn thành thêm độ chính xác cho thuật toán {algorithm} ({target_type})")
+    
+    print(f"Hoàn thành thêm {target_type} từ ngày {first_day} đến ngày {last_day}")
+    return 200
 
 #***************************************************************************************************************************
 #***************************************************************************************************************************
 #Tạo thêm dữ liệu cho con lợn riêng lẻ
-def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algorithm, status_new_data, session_user):
+def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algorithm, session_user):
     
     data = pd.merge(dfi_data, weight_data, on='age', how='inner', validate='one_to_one')
     data['id'] = pig_id
@@ -583,7 +717,7 @@ def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algor
     dfi_results, metrics_DFI = multi_predict_DFI(data, pig_id, start_day_dfi, last_day, algorithm)
         
     if isinstance(dfi_results, pd.DataFrame) and not dfi_results.empty:
-        if status_new_data:
+        if session_user is not None:
             status_write = write_data_to_mysql("insert", "output", "user", "dfi", pig_id, algorithm, session_user, data = dfi_results)
         else:
             status_write = write_data_to_mysql("insert", "output", "default", "dfi", pig_id, algorithm, "None", data = dfi_results)
@@ -599,7 +733,7 @@ def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algor
     weight_results, metrics_weight = multi_predict_Weight(data, pig_id, start_day_weight, last_day, algorithm)
         
     if isinstance(weight_results, pd.DataFrame) and not weight_results.empty:
-        if status_new_data:
+        if session_user is not None:
             status_write = write_data_to_mysql("insert", "output", "user", "weight", pig_id, algorithm, session_user, data = weight_results)
         else:   
             status_write = write_data_to_mysql("insert", "output", "default", "weight", pig_id, algorithm, "None", data = weight_results)
@@ -611,11 +745,19 @@ def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algor
 
 #**************************************************    5    ****************************************************************       
 def main():
-    Create_ALL_data_begin('algorithm2', 'dfi')
+    Create_ALL_data_begin('algorithm7', 'dfi')
     #Create_ALL_data_begin('algorithm1', 'weight')
     
 def main_test():
     paint_metrics('algorithm1')
+    
+def main_test_reject():
+    pig_id = 86
+    first_day = 4
+    last_day = 10
+    algorithm = 'algorithm1'
+    session_id_mysql = 'b8d5786f9c'
+    status_result, barchart_data, donut_data = reject(pig_id, first_day, last_day, algorithm, session_id_mysql)
             
 #******************************************************6*********************************************************
 if __name__ == "__main__":

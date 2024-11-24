@@ -282,59 +282,442 @@ document.getElementById("exportPDF").addEventListener("click", function () {
     const id = globalInputs.id;
     const selectedAlgorithm = globalInputs.algorithm;
     const languageSelect_document = document.getElementById("language-select").value;
+    
+    // Xóa popup cũ nếu tồn tại
+    removeExistingPopups();
 
-    fetch('/get_all_summaries')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("Dữ liệu từ các bảng:", data);
+    // Tạo lớp phủ
+    const overlay_pdf = document.createElement("div");
+    overlay_pdf.id = "overlay";
+    document.body.appendChild(overlay_pdf);
 
-             // Truy cập dữ liệu từ "tables"
-            const dfiData = data.tables["output_summary_all_default_dfi"];
-            const weightData = data.tables["output_summary_all_default_weight"];
-            const meanDfiData = data.tables["output_summary_mean_default_dfi"].map(item => ({
-                min: item.min,
-                max: item.max,
-                mean: item.mean,
-                sd: item.sd
-            }));
-            
-            const meanWeightData = data.tables["output_summary_mean_default_weight"].map(item => ({
-                min: item.min,
-                max: item.max,
-                mean: item.mean,
-                sd: item.sd
-            }));
+    const popupFile = document.createElement("div");
+    popupFile.id = "popup_file"; // Sử dụng CSS đã định nghĩa
+    popupFile.innerHTML = `
+        <h3>Select the type of PDF file</h3>
+        <button id="trainProcess" class="btn">Training Process</button>
+        <button id="compareAlgorithms" class="btn">Compare Algorithms</button>
+        <button class="popup-close">&times;</button> <!-- Nút đóng -->
+    `;
+    document.body.appendChild(popupFile);
+    popupFile.style.display = "block";
+    overlay_pdf.style.display = "block";
 
-            // Kiểm tra kiểu dữ liệu của id
-            const idNumber = parseInt(id); // Chuyển đổi id thành số nguyên
-            const dfi_Data_single = dfiData.find(item => item.id === idNumber);
-            const weight_Data_single = weightData.find(item => item.id === idNumber);
-
-            console.log("DFI Data Single received:", dfi_Data_single);
-            console.log("Weight Data Single received:", weight_Data_single);
-
-            console.log({
-                selectedAlgorithm_data_received: selectedAlgorithm
-            });
-
-            // Truy cập dữ liệu lỗi (error metrics)
-            const metrics_dfi_data = data.dfi_error[selectedAlgorithm]?.[0] || { error: "Không tìm thấy dữ liệu metrics DFI" };
-            const metrics_weight_data = data.weight_error[selectedAlgorithm]?.[0] || { error: "Không tìm thấy dữ liệu metrics Weight" };
-            
-            console.log("Metrics DFI:", metrics_dfi_data);
-            console.log("Metrics Weight:", metrics_weight_data);
-
-            addDataToPDF(doc, firstDay, lastDay, id, selectedAlgorithm, dfi_Data_single, weight_Data_single, meanDfiData, meanWeightData, metrics_dfi_data, metrics_weight_data, languageSelect_document);
-            doc.save("SmartSwine_Prediction_Report.pdf");
-        })
-        .catch(error => {
-            console.error("Lỗi khi lấy dữ liệu:", error);
+    // Đóng popup khi nhấn nút đóng
+    document.querySelectorAll('.popup-close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', () => {
+            closeBtn.closest('div').style.display = "none";
+            overlay_pdf.style.display = "none"; // Ẩn lớp phủ khi đóng popup
         });
+    });
+
+    document.getElementById("trainProcess").addEventListener("click", () => {
+        popupFile.style.display = "none"; // Ẩn popup
+        fetch('/get_all_summaries')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Dữ liệu từ các bảng:", data);
+    
+                // Kiểm tra dữ liệu từ các bảng
+                const dfiData = data.tables?.["output_summary_all_default_dfi"] || null;
+                const weightData = data.tables?.["output_summary_all_default_weight"] || null;
+    
+                const meanDfiData = Array.isArray(data.tables?.["output_summary_mean_default_dfi"]) 
+                    ? data.tables["output_summary_mean_default_dfi"].map(item => ({
+                        min: item?.min ?? "Không xác định",
+                        max: item?.max ?? "Không xác định",
+                        mean: item?.mean ?? "Không xác định",
+                        sd: item?.sd ?? "Không xác định"
+                    }))
+                    : null;
+    
+                const meanWeightData = Array.isArray(data.tables?.["output_summary_mean_default_weight"]) 
+                    ? data.tables["output_summary_mean_default_weight"].map(item => ({
+                        min: item?.min ?? "Không xác định",
+                        max: item?.max ?? "Không xác định",
+                        mean: item?.mean ?? "Không xác định",
+                        sd: item?.sd ?? "Không xác định"
+                    }))
+                    : null;
+    
+                // Kiểm tra kiểu dữ liệu của id
+                const idNumber = parseInt(id); // Chuyển đổi id thành số nguyên
+                const dfi_Data_single = Array.isArray(dfiData) 
+                    ? dfiData.find(item => item?.id === idNumber) || "Không có thông tin về DFI"
+                    : "Không có thông tin về DFI";
+    
+                const weight_Data_single = Array.isArray(weightData) 
+                    ? weightData.find(item => item?.id === idNumber) || "Không có thông tin về Weight"
+                    : "Không có thông tin về Weight";
+    
+                console.log("DFI Data Single received:", dfi_Data_single);
+                console.log("Weight Data Single received:", weight_Data_single);
+    
+                console.log({
+                    selectedAlgorithm_data_received: selectedAlgorithm
+                });
+    
+                // Truy cập dữ liệu lỗi (error metrics)
+                const metrics_dfi_data = data?.dfi_error?.[selectedAlgorithm]?.[0] ?? "Không có thông tin về lỗi DFI";
+                const metrics_weight_data = data?.weight_error?.[selectedAlgorithm]?.[0] ?? "Không có thông tin về lỗi Weight";
+    
+                console.log("Metrics DFI:", metrics_dfi_data);
+                console.log("Metrics Weight:", metrics_weight_data);
+    
+                addDataToPDF(
+                    doc, firstDay, lastDay, id, selectedAlgorithm, 
+                    dfi_Data_single, weight_Data_single, meanDfiData, meanWeightData, 
+                    metrics_dfi_data, metrics_weight_data, languageSelect_document
+                );
+                doc.save("SmartSwine_Prediction_Report.pdf");
+                overlay_pdf.style.display = "none"; // Ẩn lớp phủ khi đóng popup
+            })
+            .catch(error => {
+                console.error("Lỗi khi lấy dữ liệu:", error);
+            });
+    });
+
+     // Khi chọn "So sánh thuật toán"
+    document.getElementById("compareAlgorithms").addEventListener("click", () => {
+        popupFile.style.display = "none"; // Ẩn popup loại file
+        const popupAlgorithm = document.createElement("div");
+        popupAlgorithm.id = "popup_algorithm"; // Sử dụng CSS đã định nghĩa
+        popupAlgorithm.innerHTML = `
+            <h3>Select the algorithm to compare</h3>
+
+            <form id="algorithmForm">
+                ${Array.from({ length: 8 }, (_, i) => `
+
+                    <label>
+
+                        <input type="checkbox" name="algorithm" value="algorithm${i + 1}"> ${getAlgorithmName(`algorithm${i + 1}`)}
+
+                    </label><br>
+
+                `).join('')}
+                <button type="button" id="confirmAlgorithms" class="btn">Confirm</button>
+
+            </form>
+
+            <button class="popup-close">&times;</button> <!-- Nút đóng -->
+
+        `;
+
+        document.body.appendChild(popupAlgorithm);
+        popupAlgorithm.style.display = "block";
+
+        // Đóng popup khi nhấn nút đóng
+        document.querySelectorAll('.popup-close').forEach(closeBtn => {
+            closeBtn.addEventListener('click', () => {
+                closeBtn.closest('div').style.display = "none";
+                overlay_pdf.style.display = "none"; // Ẩn lớp phủ khi đóng popup
+            });
+        });
+
+        document.getElementById("confirmAlgorithms").addEventListener("click", () => {
+            const selectedAlgorithms = Array.from(document.querySelectorAll('input[name="algorithm"]:checked')).map(input => input.value);
+            popupAlgorithm.style.display = "none"; // Ẩn popup so sánh thuật toán
+            overlay_pdf.style.display = "none"; // Ẩn lớp phủ khi đóng popup
+
+            fetch('/get_all_summaries')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Dữ liệu từ các bảng:", data);
+                // Truy cập dữ liệu lỗi (error metrics)
+                const metrics_dfi_data = selectedAlgorithms.map(algorithm => {
+                    const metrics = data?.dfi_error?.[algorithm]?.[0];
+                    return metrics ? {
+                        r2: metrics.r2 ?? 0,
+                        mae: metrics.mae ?? 0,
+                        mse: metrics.mse ?? 0,
+                        rmse: metrics.rmse ?? 0
+                    } : { r2: 0, mae: 0, mse: 0, rmse: 0 };
+                });
+            
+                const metrics_weight_data = selectedAlgorithms.map(algorithm => {
+                    const metrics = data?.weight_error?.[algorithm]?.[0];
+                    return metrics ? {
+                        r2: metrics.r2 ?? 0,
+                        mae: metrics.mae ?? 0,
+                        mse: metrics.mse ?? 0,
+                        rmse: metrics.rmse ?? 0
+                    } : { r2: 0, mae: 0, mse: 0, rmse: 0 };
+                });
+                // Gọi hàm tạo PDF so sánh với dữ liệu lỗi
+                generateComparisonPDF(selectedAlgorithms, metrics_dfi_data, metrics_weight_data);
+            })
+            .catch(error => {
+                console.error("Lỗi khi lấy dữ liệu:", error);
+            });
+        });
+
+        // Đóng popup khi nhấp vào lớp phủ
+        overlay_pdf.addEventListener('click', () => {
+            popupFile.style.display = "none";
+            popupAlgorithm.style.display = "none";
+            overlay_pdf.style.display = "none";
+        });
+    });
+
+        // Hàm tạo file PDF so sánh các thuật toán
+        function generateComparisonPDF(selectedAlgorithms, metrics_dfi_data, metrics_weight_data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 15;
+            const lineSpacing = 10;
+            let yPosition = margin;
+            let lang = "en"
+            let fontDocument = "helvetica";
+
+            if (lang === "en") {
+                font_document = "helvetica";
+            }
+            else if (lang === "vi") {
+                font_document = "Times New Roman";
+            }
+            else if (lang === "zh") {
+                font_document = "SimSun";
+            }
+        
+            // Font selection
+            doc.setFont(fontDocument);
+        
+            // Helper to split and print multi-line text
+            function addMultiLineText(text, x, options) {
+                const lines = doc.splitTextToSize(text, options.maxWidth || (pageWidth - 2 * margin));
+                lines.forEach(line => {
+                    doc.text(line, x, yPosition);
+                    yPosition += lineSpacing;
+                });
+            }
+        
+            // Title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("Algorithm Comparison Report Used in the Project", pageWidth / 2, yPosition, "center");
+            yPosition += lineSpacing * 2;
+        
+            // Introduction Section
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            addMultiLineText(
+                "This report provides a detailed analysis of algorithms used for predicting daily feed intake (DFI) and weight in pigs. The aim is to evaluate their performance and identify the most suitable algorithm for this project.",
+                margin,
+                { maxWidth: pageWidth - 2 * margin }
+            );
+            
+        
+            // Section: Metrics for DFI
+            yPosition += lineSpacing * 2;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("Metrics for Daily Feed Intake (DFI) Prediction", margin, yPosition);
+            yPosition += lineSpacing;
+        
+            const dfiMetricsTable = [
+                ['Algorithm', 'R²', 'MAE', 'MSE', 'RMSE'],
+                ...selectedAlgorithms.map((algorithm, index) => {
+                    const metrics = metrics_dfi_data[index];
+                    return [
+                        getAlgorithmName(algorithm, lang) || "Unknown Algorithm",
+                        metrics?.r2?.toFixed(4) || "N/A",
+                        metrics?.mae?.toFixed(4) || "N/A",
+                        metrics?.mse?.toFixed(4) || "N/A",
+                        metrics?.rmse?.toFixed(4) || "N/A",
+                    ];
+                }),
+            ];
+            doc.autoTable({
+                head: [dfiMetricsTable[0]],
+                body: dfiMetricsTable.slice(1),
+                startY: yPosition,
+                theme: 'grid',
+                headStyles: { fillColor: [41, 128, 185] },
+                styles: { cellPadding: 5, fontSize: 10 },
+            });
+            yPosition = doc.autoTable.previous.finalY + lineSpacing * 2;
+        
+            // Section: Metrics for Weight
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("Metrics for Weight Prediction", margin, yPosition);
+            yPosition += lineSpacing;
+        
+            const weightMetricsTable = [
+                ['Algorithm', 'R²', 'MAE', 'MSE', 'RMSE'],
+                ...selectedAlgorithms.map((algorithm, index) => {
+                    const metrics = metrics_weight_data[index];
+                    return [
+                        getAlgorithmName(algorithm, lang) || "Unknown Algorithm",
+                        metrics?.r2?.toFixed(4) || "N/A",
+                        metrics?.mae?.toFixed(4) || "N/A",
+                        metrics?.mse?.toFixed(4) || "N/A",
+                        metrics?.rmse?.toFixed(4) || "N/A",
+                    ];
+                }),
+            ];
+            doc.autoTable({
+                head: [weightMetricsTable[0]],
+                body: weightMetricsTable.slice(1),
+                startY: yPosition,
+                theme: 'grid',
+                headStyles: { fillColor: [39, 174, 96] },
+                styles: { cellPadding: 5, fontSize: 10 },
+            });
+            yPosition = doc.autoTable.previous.finalY + lineSpacing;
+        
+            // Section: Analysis and Comparison
+            if (selectedAlgorithms.length < 5) {
+                doc.addPage();
+                yPosition = margin + 10;
+            }
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("Analysis and Comparison", margin, yPosition);
+            yPosition += lineSpacing;
+            doc.setFont("helvetica", "normal");
+
+            let index_addPage = 0;
+
+            selectedAlgorithms.forEach((algorithm, index) => {
+                const dfiMetrics = metrics_dfi_data[index];
+                const weightMetrics = metrics_weight_data[index];
+                index_addPage += 1;
+        
+                // Add algorithm title
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "bolditalic");
+                doc.text(`${getAlgorithmName(algorithm, lang) || "Unknown Algorithm"} Analysis`, margin, yPosition);
+                yPosition += lineSpacing;
+
+                if (!dfiMetrics && !weightMetrics) {
+                    // Không có dữ liệu cho thuật toán
+                    doc.setFont("helvetica", "italic");
+                    doc.text("Không có dữ liệu cho thuật toán này.", margin, yPosition);
+                    yPosition += lineSpacing;
+                    return; // Bỏ qua các xử lý tiếp theo
+                }
+
+                if (dfiMetrics) {
+                    // Add details for DFI
+                    doc.setFont("helvetica", "italic");
+                    addMultiLineText(`For Daily Feed Intake (DFI):`, margin, { maxWidth: pageWidth - 2 * margin });
+                    doc.setFont("helvetica", "normal");
+                    addMultiLineText(
+                        `- R²: ${dfiMetrics.r2.toFixed(4)} (${dfiMetrics.r2 > 0.8 ? "Excellent" : dfiMetrics.r2 > 0.6 ? "Moderate" : "Poor"} accuracy)\n- RMSE: ${dfiMetrics.rmse.toFixed(4)} (lower is better)\n- Additional Comments: ${
+                            dfiMetrics.r2 > 0.8
+                                ? "This algorithm shows great potential for accurate DFI predictions."
+                                : "Improvements may be needed for better performance in DFI predictions."
+                        }`,
+                        margin + 10,
+                        { maxWidth: pageWidth - 2 * margin }
+                    );
+
+                    if (index_addPage === 3 || index_addPage === 8) {
+                        doc.addPage();
+                        yPosition = margin + 10;
+                    }
+                } else {
+                    doc.setFont("helvetica", "italic");
+                    doc.text("No data for this algorithm.", margin, yPosition);
+                    yPosition += lineSpacing;
+                }
+        
+                if (weightMetrics) {
+                    // Add details for Weight
+                    doc.setFont("helvetica", "italic");
+                    addMultiLineText(`For Weight Prediction:`, margin, { maxWidth: pageWidth - 2 * margin });
+                    doc.setFont("helvetica", "normal");
+                    addMultiLineText(
+                        `- R²: ${weightMetrics.r2.toFixed(4)} (${weightMetrics.r2 > 0.8 ? "Excellent" : weightMetrics.r2 > 0.6 ? "Moderate" : "Poor"} accuracy)\n- RMSE: ${weightMetrics.rmse.toFixed(4)} (lower is better)\n- Additional Comments: ${
+                            weightMetrics.r2 > 0.8
+                                ? "This algorithm is highly reliable for weight prediction."
+                                : "Consider tuning the model for improved weight prediction performance."
+                        }`,
+                        margin + 10,
+                        { maxWidth: pageWidth - 2 * margin }
+                    );
+                    if (index_addPage === 5) {
+                        doc.addPage();
+                        yPosition = margin + 10;
+                    }
+                } else {
+                    doc.setFont("helvetica", "italic");
+                    doc.text("No data for this algorithm.", margin, yPosition);
+                    yPosition += lineSpacing;
+                }
+            });
+                
+        
+            // Highlight Best Algorithm
+            const bestAlgorithmIndex = metrics_dfi_data.findIndex(metrics => metrics.r2 === Math.max(...metrics_dfi_data.map(m => m.r2)));
+            const bestAlgorithm = selectedAlgorithms[bestAlgorithmIndex];
+            
+            if (index_addPage != 5) {
+                yPosition += lineSpacing;
+            }
+            if (selectedAlgorithms.length === 2) {
+                doc.addPage();
+                yPosition = margin + 10;
+            }
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("Best Algorithm", margin, yPosition);
+            yPosition += lineSpacing;
+        
+            doc.setFont("helvetica", "normal");
+            addMultiLineText(
+                `The algorithm "${getAlgorithmName(bestAlgorithm, lang)}" stands out as the most effective, achieving the highest R² and lowest RMSE for both DFI and weight prediction. It is strongly recommended for deployment in this context.`,
+                margin,
+                { maxWidth: pageWidth - 2 * margin }
+            );
+
+            yPosition += lineSpacing;
+
+            // Highlight Bad Algorithm
+            const worstAlgorithmIndex = metrics_dfi_data.findIndex(metrics => metrics.r2 === Math.min(...metrics_dfi_data.map(m => m.r2)));
+            const worstAlgorithm = selectedAlgorithms[worstAlgorithmIndex];
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text("Bad Algorithm", margin, yPosition);
+            yPosition += lineSpacing;
+            
+            doc.setFont("helvetica", "normal");
+            addMultiLineText(
+                `The "${getAlgorithmName(worstAlgorithm, lang)}" algorithm has the lowest R² and highest RMSE for both DFI and weight predictions. This indicates that this algorithm does not meet the accuracy requirements and is not recommended for use in this context. To improve performance, it may be considered to optimize the model parameters, experiment with other algorithms, or collect additional data to enhance predictive capabilities.`,
+                margin,
+                { maxWidth: pageWidth - 2 * margin }
+            );
+            // Save PDF
+            doc.save("Algorithm_Comparison_Report.pdf");
+        }
+        
+        
+        
+
+        // Hàm xóa popup cũ nếu tồn tại
+        function removeExistingPopups() {
+            const existingPopupFile = document.getElementById("popup_file");
+            const existingPopupAlgorithm = document.getElementById("popup_algorithm");
+            if (existingPopupFile) {
+                existingPopupFile.remove();
+            }
+            if (existingPopupAlgorithm) {
+                existingPopupAlgorithm.remove();
+            }
+        }
 
         function addDataToPDF(
             doc,
@@ -402,7 +785,7 @@ document.getElementById("exportPDF").addEventListener("click", function () {
 
             // Selected Algorithm
             let name_algorithm = getAlgorithmName(selectedAlgorithm);
-            doc.text(translate(selectedAlgorithm) + " " + name_algorithm, margin, yPosition);
+            doc.text(translate("selectedAlgorithm_translate", lang) + " " + name_algorithm, margin, yPosition);
             yPosition += lineSpacing * 2;
 
             // Part 2: Overview
@@ -511,38 +894,8 @@ document.getElementById("exportPDF").addEventListener("click", function () {
             let dfiComment = "";
             let weightComment = "";
 
-            if (selectedAlgorithm === "algorithm1") { // If Linear Regression
-                dfiComment = `The Linear Regression model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of Linear Regression in predicting pig weight based on the available data.`;
-            }
-            else if (selectedAlgorithm === "algorithm2") { // If Gradient Boosting
-                dfiComment = `The Gradient Boosting model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of Gradient Boosting in predicting pig weight based on the available data.`;
-            }
-            else if (selectedAlgorithm === "algorithm3") { // If K-Nearest Neighbors
-                dfiComment = `The K-Nearest Neighbors model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of K-Nearest Neighbors in predicting pig weight based on the available data.`;
-            }
-            else if (selectedAlgorithm === "algorithm4") { // If Multilayer Perceptron
-                dfiComment = `The Multilayer Perceptron model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of Multilayer Perceptron in predicting pig weight based on the available data.`;
-            }
-            else if (selectedAlgorithm === "algorithm5") { // If Support Vector Regression
-                dfiComment = `The Support Vector Regression model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of Support Vector Regression in predicting pig weight based on the available data.`;
-            }
-            else if (selectedAlgorithm === "algorithm6") { // If Random Forest
-                dfiComment = `The Random Forest model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of Random Forest in predicting pig weight based on the available data.`;
-            }
-            else if (selectedAlgorithm === "algorithm7") { // If Long Short Term Memory
-                dfiComment = `The Long Short Term Memory model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of Long Short Term Memory in predicting pig weight based on the available data.`;
-            }
-            else if (selectedAlgorithm === "algorithm8") { // If LSTM (Custom Implementation)
-                dfiComment = `The LSTM (Custom Implementation) model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
-                weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of LSTM (Custom Implementation) in predicting pig weight based on the available data.`;
-            }
+            dfiComment = `The ${getAlgorithmName(selectedAlgorithm, lang)} model achieved an average accuracy with R² = ${dfiAccuracy.toFixed(6)}, indicating limited predictive ability and a need for improvement to better reflect the relationship between input factors and DFI.`;
+            weightComment = `The model achieved very high accuracy with R² = ${weightAccuracy.toFixed(6)}, demonstrating the effectiveness of ${getAlgorithmName(selectedAlgorithm, lang)} in predicting pig weight based on the available data.`;
 
             addMultiLineText(dfiComment, margin, { maxWidth: pageWidth - 2 * margin });
             addMultiLineText(weightComment, margin, { maxWidth: pageWidth - 2 * margin });
@@ -577,7 +930,7 @@ document.getElementById("exportPDF").addEventListener("click", function () {
                 case "algorithm3": return "K-Nearest Neighbors";
                 case "algorithm4": return "Multilayer Perceptron";
                 case "algorithm5": return "Support Vector Regression";
-                case "algorithm6": return "Random Forest";
+                case "algorithm6": return "Random Forest Regressor";
                 case "algorithm7": return "Long Short Term Memory";
                 case "algorithm8": return "LSTM (Custom Implementation)";
                 default: return "Unknown";
@@ -635,34 +988,65 @@ document.getElementById("exportPDF").addEventListener("click", function () {
         }
     
         function addAllPigsData(doc, meanDfiData, meanWeightData, margin, yPosition) {
-            doc.setFont("helvetica", "bolditalic");
-            doc.text(`Below are the average prediction results for the entire pig herd during this period:`, margin, yPosition);
-            doc.setFont("helvetica", "normal");
-            yPosition += 8;
-            doc.setFont("helvetica", "italic");
-            doc.text(`Average DFI:`, margin, yPosition);
-            yPosition += 8;
-            doc.setFont("helvetica", "normal");
-            doc.text(`   - Minimum DFI: ${meanDfiData[0].min}`, margin + 10, yPosition);
-            yPosition += 8;
-            doc.text(`   - Maximum DFI: ${meanDfiData[0].max}`, margin + 10, yPosition);
-            yPosition += 8;
-            doc.text(`   - Average DFI: ${meanDfiData[0].mean}`, margin + 10, yPosition);
-            yPosition += 8;
-            doc.text(`   - Standard Deviation DFI: ${meanDfiData[0].sd}`, margin + 10, yPosition);
-            yPosition += 10;
-            
-            doc.setFont("helvetica", "italic");
-            doc.text(`Average Weight:`, margin, yPosition);
-            yPosition += 8;
-            doc.setFont("helvetica", "normal");
-            doc.text(`   - Minimum Weight: ${meanWeightData[0].min}`, margin + 10, yPosition);
-            yPosition += 8;
-            doc.text(`   - Maximum Weight: ${meanWeightData[0].max}`, margin + 10, yPosition);
-            yPosition += 8;
-            doc.text(`   - Average Weight: ${meanWeightData[0].mean}`, margin + 10, yPosition);
-            yPosition += 8;
-            doc.text(`   - Standard Deviation Weight: ${meanWeightData[0].sd}`, margin + 10, yPosition);
+            let status_null = false;
+        
+            // Kiểm tra dữ liệu đầu vào
+            console.log("meanDfiData:", meanDfiData);
+            console.log("meanWeightData:", meanWeightData);
+        
+            if (!Array.isArray(meanDfiData) || meanDfiData.length === 0 || 
+                !Array.isArray(meanWeightData) || meanWeightData.length === 0) {
+                console.error("Invalid data for all pigs:", { meanDfiData, meanWeightData });
+                status_null = true;
+            }
+        
+            if (status_null === false) {
+                doc.setFont("helvetica", "bolditalic");
+                doc.text("Below are the average prediction results for the entire pig herd during this period:", margin, yPosition);
+                yPosition += 8;
+        
+                // Phần DFI
+                if (meanDfiData[0] && typeof meanDfiData[0] === "object") {
+                    doc.setFont("helvetica", "italic");
+                    doc.text("Average DFI:", margin, yPosition);
+                    yPosition += 8;
+        
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`   - Minimum DFI: ${meanDfiData[0].min || "Not available"}`, margin + 10, yPosition);
+                    yPosition += 8;
+                    doc.text(`   - Maximum DFI: ${meanDfiData[0].max || "Not available"}`, margin + 10, yPosition);
+                    yPosition += 8;
+                    doc.text(`   - Average DFI: ${meanDfiData[0].mean || "Not available"}`, margin + 10, yPosition);
+                    yPosition += 8;
+                    doc.text(`   - Standard Deviation DFI: ${meanDfiData[0].sd || "Not available"}`, margin + 10, yPosition);
+                    yPosition += 10;
+                } else {
+                    doc.text("DFI data is not available.", margin, yPosition);
+                    yPosition += 10;
+                }
+        
+                // Phần Weight
+                if (meanWeightData[0] && typeof meanWeightData[0] === "object") {
+                    doc.setFont("helvetica", "italic");
+                    doc.text("Average Weight:", margin, yPosition);
+                    yPosition += 8;
+        
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`   - Minimum Weight: ${meanWeightData[0].min || "Not available"}`, margin + 10, yPosition);
+                    yPosition += 8;
+                    doc.text(`   - Maximum Weight: ${meanWeightData[0].max || "Not available"}`, margin + 10, yPosition);
+                    yPosition += 8;
+                    doc.text(`   - Average Weight: ${meanWeightData[0].mean || "Not available"}`, margin + 10, yPosition);
+                    yPosition += 8;
+                    doc.text(`   - Standard Deviation Weight: ${meanWeightData[0].sd || "Not available"}`, margin + 10, yPosition);
+                } else {
+                    doc.text("Weight data is not available.", margin, yPosition);
+                    yPosition += 10;
+                }
+            } else {
+                // Thông báo chung nếu toàn bộ dữ liệu không khả dụng
+                doc.text("DFI and Weight data are not available.", margin, yPosition);
+            }
         }     
         
         function translate(text, language) {
@@ -673,7 +1057,7 @@ document.getElementById("exportPDF").addEventListener("click", function () {
                     startDate: "- Start Date:",
                     endDate: "- End Date:",
                     pigId: "- Pig ID:",
-                    selectedAlgorithm: "- Selected Algorithm:",
+                    selectedAlgorithm_translate: "- Selected Algorithm:",
                     overview: "Overview and Objectives",
                     performanceMetrics: "Algorithm Performance Metrics",
                     conclusion: "Conclusion",
@@ -704,7 +1088,7 @@ document.getElementById("exportPDF").addEventListener("click", function () {
                     startDate: "- Ngày Bắt Đầu:",
                     endDate: "- Ngày Kết Thúc:",
                     pigId: "- Mã Số Heo:",
-                    selectedAlgorithm: "- Thuật Toán Được Chọn:",
+                    selectedAlgorithm_translate: "- Thuật Toán Được Chọn:",
                     overview: "Tổng Quan và Mục Tiêu",
                     performanceMetrics: "Các Thông Số Hiệu Suất Thuật Toán",
                     conclusion: "Kết Luận",
@@ -735,7 +1119,7 @@ document.getElementById("exportPDF").addEventListener("click", function () {
                     startDate: "- 开始日期：",
                     endDate: "- 结束日期：",
                     pigId: "- 猪只ID：",
-                    selectedAlgorithm: "- 选择的算法：",
+                    selectedAlgorithm_translate: "- 选择的算法：",
                     overview: "概述和目标",
                     performanceMetrics: "算法性能指标",
                     conclusion: "结论",

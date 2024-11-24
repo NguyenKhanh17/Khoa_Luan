@@ -21,6 +21,9 @@ import numpy as np
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
+
+from ML_Long_Term_Memory import train_LSTM, create_time_series_for_LSTM
+
  
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
@@ -96,20 +99,16 @@ def Algorithm_Case(Algorithm, X_train, y_train, type_predict):
             max_features='sqrt'
         )
         model.fit(X_train, y_train)
-    elif Algorithm == 'algorithm7' and type_predict == 'dfi':
-        model = Sequential([
-            LSTM(hidden_dim, input_shape=(7, input_dim)),  # input_dim: tuổi và DFI từng ngày
-            Dense(1)  # Dự đoán DFI hiện tại
-        ])
-        model.fit(X_train, y_train, epochs=50, batch_size=32)
-    elif Algorithm == 'algorithm7' and type_predict == 'weight':
-        model = Sequential([
-            LSTM(hidden_dim, input_shape=(1, input_dim)),  # input_dim: Weight hôm qua, DFI hôm nay
-            Dense(1)  # Dự đoán Weight hiện tại
-        ])
-        model.fit(X_train, y_train, epochs=50, batch_size=32)
-    elif Algorithm == 'algorithm8':
-        model = train_LSTM(X_train, y_train, type_predict)
+    elif Algorithm == 'algorithm7':
+        time_steps = 7 if type_predict == 'dfi' else 1  # Chọn số bước thời gian dựa trên type_predict
+        input_features = 8 if type_predict == 'dfi' else 3  # Số đặc trưng
+        output_features = 1
+
+        # Chuyển dữ liệu thành time series
+        X_train, y_train = create_time_series_for_LSTM(X_train, y_train, time_steps)
+
+        # Gọi hàm train_LSTM
+        model = train_LSTM(X_train, y_train, input_features, output_features)
     else:
         return "Không có thuật toán phù hợp"
     return model
@@ -164,7 +163,13 @@ def model_training_DFI(data, algorithm):
         
     #Khởi tạo và huấn luyện mô hình
     model_dfi = Algorithm_Case(algorithm, X_train, y_train, 'dfi') 
-    #Dự đoán với bộ test
+    
+    # Dự đoán với bộ test
+    if algorithm == 'algorithm7':
+        # Đảm bảo dữ liệu test có cùng dạng time series
+        time_steps = 7
+        X_test, y_test = create_time_series_for_LSTM(X_test, y_test, time_steps)
+        
     predictions = predict_input_custom(model_dfi, X_test, algorithm)
     
     mae = mean_absolute_error(y_test, predictions)

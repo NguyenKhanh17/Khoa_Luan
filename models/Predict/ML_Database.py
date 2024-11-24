@@ -11,7 +11,7 @@ def get_mysql_connection():
         host="localhost",
         user="root",
         password="172002",
-        database="pig_model_data"
+        database="pig_model_data_full"
     )
     
 def read_csv_file(data_path):
@@ -285,6 +285,33 @@ def check_table_exist(name_table):
     cursor.close()
     conn.close()
     return bool(result)
+
+def list_table_contains_multiple_phrase(include_word_1, include_word_2):
+    conn = get_mysql_connection()
+    cursor = conn.cursor(buffered=True)
+    
+    try:
+        # Lấy danh sách tất cả các bảng
+        cursor.execute("SHOW TABLES")
+        tables = cursor.fetchall()
+        if not tables:
+            print("Không có bảng nào trong cơ sở dữ liệu.")
+            return []
+
+        # Lọc các bảng có chứa cả hai từ
+        filtered_tables = [
+            row[0] for row in tables
+            if include_word_1 in row[0] and include_word_2 in row[0]
+        ]
+        
+        print("Danh sách các bảng: ", filtered_tables)
+        return filtered_tables
+    except Exception as e:
+        print(f"Lỗi trong hàm list_table_contains_multiple_phrase: {str(e)}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()
 
 def list_table_contains_phrase(include_word):
     conn = get_mysql_connection()  # Hàm kết nối đến MySQL

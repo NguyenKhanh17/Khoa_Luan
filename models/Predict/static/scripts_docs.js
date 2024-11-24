@@ -28,6 +28,8 @@ const translations = {
         headerTitle: "Documentation",
         introductionTitle: "Introduction",
         introductionText: "This page provides documentation for using our products and services.",
+        titleintro: "Prediction Algorithms for DFI and Pig Weight",
+        intro: "This page provides detailed information about the prediction algorithms used in the feed intake (DFI) and pig weight prediction system. These algorithms help increase the accuracy of prediction models and support users in selecting the most suitable method.",
         tocTitle: "Table of Contents",
         tocItems: [
             "Linear Regression",
@@ -98,6 +100,8 @@ const translations = {
         headerTitle: "Tài Liệu",
         introductionTitle: "Giới Thiệu",
         introductionText: "Trang này cung cấp tài liệu sử dụng sản phẩm và dịch vụ của chúng tôi.",
+        titleintro: "Các Thuật Toán Dự Đoán Cho DFI và Cân Nặng Lợn",
+        intro: "Trang này cung cấp thông tin chi tiết về các thuật toán dự đoán được sử dụng trong hệ thống dự đoán tiêu thụ thức ăn (DFI) và cân nặng lợn. Các thuật toán này giúp tăng độ chính xác của các mô hình dự đoán và hỗ trợ người dùng trong việc lựa chọn phương pháp phù hợp nhất.",
         tocTitle: "Mục Lục",
         tocItems: [
             "Hồi Quy Tuyến Tính",
@@ -168,6 +172,8 @@ const translations = {
         headerTitle: "文档",
         introductionTitle: "介绍",
         introductionText: "本页面提供使用我们产品和服务的文档。",
+        titleintro: "DFI和猪体重预测的预测算法",
+        intro: "本页面提供有关用于猪体重（DFI）和猪体重预测系统中的预测算法的详细信息。这些算法有助于提高预测模型的准确性，并支持用户选择最合适的方法。",
         tocTitle: "目录",
         tocItems: [
             "线性回归",
@@ -242,6 +248,8 @@ function changeLanguage(language) {
         headerTitle: document.querySelector("header h1"),
         introductionTitle: document.querySelector("#introduction h2"),
         introductionText: document.querySelector("#introduction p"),
+        titleintro: document.querySelector(".container h1"),
+        intro: document.querySelector(".container p"),
         tocTitle: document.querySelector(".toc h2"),
         tocItems: document.querySelectorAll(".toc ul li a"),
         linearRegressionTitle: document.querySelector("#linear-regression h2"),

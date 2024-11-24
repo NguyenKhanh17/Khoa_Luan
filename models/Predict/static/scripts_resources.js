@@ -1,20 +1,3 @@
-// // Tăng dần % và chiều rộng của thanh tiến trình
-// const loader = document.querySelector('.loader');
-// const progress = loader.querySelector('.progress');
-// const percentage = loader.querySelector('.percentage');
-
-// let progressValue = 0; // Giá trị ban đầu
-// const duration = 6000; // Thời gian hoàn thành (ms)
-// const interval = 100; // Cập nhật mỗi 100ms
-// const step = (interval / duration) * 100; // % tăng mỗi lần cập nhật
-
-// const intervalId = setInterval(() => {
-//   progressValue = Math.min(progressValue + step, 100); // Tăng % nhưng không vượt quá 100
-//   progress.style.width = `${progressValue}%`; // Cập nhật chiều rộng
-//   percentage.textContent = `${Math.floor(progressValue)}%`; // Cập nhật text
-//   if (progressValue >= 100) clearInterval(intervalId); // Dừng khi đạt 100%
-// }, interval);
-
 // Toggle menu
 document.querySelector('.menu-toggle').addEventListener('click', function() {
     document.querySelector('.navbar-menu').classList.toggle('show');
@@ -32,61 +15,94 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Upload file
-document.getElementById("upload-form").addEventListener("submit", function(event) {
+document.getElementById("upload-form").addEventListener("submit", function (event) {
     event.preventDefault();
-    
+
+    // Hiển thị hiệu ứng loading
+    const overlay = document.getElementById('overlay_ring');
+    const loadingContainer = document.getElementById('loading-container');
+    overlay.style.display = 'flex';
+    loadingContainer.style.display = 'block';
+
     const formData = new FormData(this);
+
+    // Gửi dữ liệu lên server
     fetch('/upload', {
         method: 'POST',
         body: formData,
         credentials: 'include' // Để gửi cookie
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message === "Upload successful!") {
-            // Display successful pop-up message
-            showPopup("Upload successful!", () => showAlgorithmPopup());
-            // Change the "Default Data" button color to gray
-            const defaultDataButton = document.getElementById("default-data-button");
-            defaultDataButton.style.backgroundColor = "gray";
-            defaultDataButton.disabled = false; // Bật lại nút sau khi tải lên
-            defaultDataButton.setAttribute("data-state", "uploaded");
-        } else {
-            // Display error pop-up message
-            showPopup(data.error || "An error occurred.");
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        showPopup("An error occurred.");
-    });
-});
-
-// Xử lý sự kiện nhấn nút "Default Data"
-document.getElementById("default-data-button").addEventListener("click", function() {
-    const buttonState = this.getAttribute("data-state");
-
-    if (buttonState === "uploaded") {
-        fetch('/set_default_data', {
-            method: 'POST',
-        })
         .then(response => response.json())
         .then(data => {
-            if (data.message === "Chuyển sang database mặc định") {
-                showPopup("Chuyển sang database mặc định");
-                
-                // Chuyển nút sang màu xanh và reset trạng thái
+            // Ẩn hiệu ứng loading
+            loadingContainer.style.display = 'none';
+            overlay.style.display = 'none';
+
+            if (data.message === "Upload successful!") {
+                // Hiển thị thông báo thành công và pop-up chọn thuật toán
+                showPopup("Upload successful!", () => showAlgorithmPopup());
+
+                // Thay đổi trạng thái nút "Default Data"
+                const defaultDataButton = document.getElementById("default-data-button");
+                defaultDataButton.style.backgroundColor = "gray";
+                defaultDataButton.setAttribute("data-state", "uploaded");
+                console.log("Database switched to uploaded data");
+            } else {
+                // Hiển thị thông báo lỗi nếu xảy ra lỗi
+                showPopup(data.error || "An error occurred.");
+            }
+        })
+        .catch(error => {
+            // Ẩn hiệu ứng loading và hiển thị thông báo lỗi
+            loadingContainer.style.display = 'none';
+            overlay.style.display = 'none';
+            console.error("Error:", error);
+            showPopup("An error occurred.");
+        });
+});
+
+
+// Xử lý trạng thái nút "Default Data" khi tải trang
+document.addEventListener("DOMContentLoaded", function () {
+    const defaultDataButton = document.getElementById("default-data-button");
+
+    // Gửi yêu cầu lên server để lấy trạng thái hiện tại
+    fetch('/get_default_data_status', { method: 'GET', credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.use_default_data) {
+                // Nếu đang dùng database mặc định
+                defaultDataButton.style.backgroundColor = "green";
+                defaultDataButton.setAttribute("data-state", "default");
+            } else {
+                // Nếu đang dùng database tải lên
+                defaultDataButton.style.backgroundColor = "gray";
+                defaultDataButton.setAttribute("data-state", "uploaded");
+            }
+        })
+        .catch(error => console.error("Error fetching default data status:", error));
+});
+
+
+
+// Xử lý sự kiện nút "Default Data"
+document.getElementById("default-data-button").addEventListener("click", function () {
+    fetch('/set_default_data', { method: 'POST', credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+            showPopup(data.message);
+            const buttonState = this.getAttribute("data-state");
+            if (buttonState === "default") {
+                this.style.backgroundColor = "gray";
+                this.setAttribute("data-state", "uploaded");
+            } else {
                 this.style.backgroundColor = "green";
                 this.setAttribute("data-state", "default");
             }
         })
-        .catch(error => {
-            console.error("Error:", error);
-            showPopup("An error occurred while switching to default data.");
-        });
-    }
+        .catch(error => console.error("Error switching database:", error));
 });
+
 
 // Hàm hiển thị pop-up
 function showPopup(message, onClose = null) {
@@ -120,23 +136,31 @@ function showAlgorithmPopup() {
                            </label>
                            <label>
                                <input type="checkbox" name="algorithm" value="Algorithm2">
-                               Decision Tree
+                               Gradient Boosting Regressor
                            </label>
                            <label>
                                <input type="checkbox" name="algorithm" value="Algorithm3">
-                               Random Forest
+                               K Neighbors Regressor
                            </label>
                            <label>
                                <input type="checkbox" name="algorithm" value="Algorithm4">
-                               Gradient Boosting
+                               MLP Regressor
                            </label>
                            <label>
                                <input type="checkbox" name="algorithm" value="Algorithm5">
-                               Support Vector Machine
+                               SVR
                            </label>
                            <label>
                                <input type="checkbox" name="algorithm" value="Algorithm6">
-                               Neural Network
+                               Random Forest Regressor
+                           </label>
+                           <label>
+                               <input type="checkbox" name="algorithm" value="Algorithm7">
+                               Long Short Term Memory
+                           </label>
+                           <label>
+                               <input type="checkbox" name="algorithm" value="Algorithm8">
+                               LSTM (Custom Implementation)
                            </label>
                            <button type="button" id="confirm-algorithm-btn">Confirm</button>
                        </form>
@@ -162,7 +186,7 @@ function showAlgorithmPopup() {
     });
 }
 
-// Hàm hiển thị thanh loading
+// Hiển thị hiệu ứng loading (%)
 function showLoading(algorithms) {
     const overlay = document.querySelector(".overlay");
     const loadingContainer = document.querySelector(".loader_upload");
@@ -170,48 +194,104 @@ function showLoading(algorithms) {
     const percentageText = document.querySelector(".percentage_upload");
     const stopButton = document.querySelector(".stop-btn");
 
-    // Hiển thị overlay và loader
     overlay.style.display = "block";
     loadingContainer.style.display = "block";
 
-    let progress = 0;
-    let isStopped = false; // Cờ kiểm tra nếu người dùng nhấn "Stop"
+    let isStopped = false;
 
-    const interval = setInterval(() => {
-        if (isStopped) {
-            clearInterval(interval);
+    // Hiệu ứng gợn sóng (wave)
+    let waveAnimation;
+    function startWaveEffect() {
+        progressBar.classList.add("wave-effect");
+        waveAnimation = setInterval(() => {
+            if (isStopped) clearInterval(waveAnimation);
+        }, 1000); // Điều chỉnh thời gian lặp
+    }
+
+    function stopWaveEffect() {
+        progressBar.classList.remove("wave-effect");
+        clearInterval(waveAnimation);
+    }
+
+    fetch('/train_model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ algorithms }),
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Failed to start training.");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        const readStream = async () => {
+            let progress = 0;
+
+            startWaveEffect(); // Bắt đầu hiệu ứng gợn sóng
+
+            while (true) {
+                if (isStopped) {
+                    // Gọi API để dừng training trên server
+                    fetch('/stop_training', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                    })
+                    .then(() => {
+                        showPopup("The process has been cancelled.");
+                    });
+                    reader.cancel();
+                    stopWaveEffect(); // Dừng hiệu ứng gợn sóng
+                    break;
+                }
+
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const text = decoder.decode(value).trim();
+
+                // Kiểm tra nếu server gửi lỗi
+                if (text.startsWith("error:")) {
+                    overlay.style.display = "none";
+                    loadingContainer.style.display = "none";
+                    stopWaveEffect(); // Dừng hiệu ứng gợn sóng
+                    showPopup(text.replace("error:", "").trim());
+                    return;
+                }
+
+                // Cập nhật tiến trình
+                progress = parseInt(text);
+                if (!isNaN(progress)) {
+                    progressBar.style.width = `${progress}%`;
+                    percentageText.textContent = `${progress}%`;
+                }
+            }
+
+            stopWaveEffect(); // Dừng hiệu ứng gợn sóng khi hoàn thành
             overlay.style.display = "none";
             loadingContainer.style.display = "none";
-            showCompletionPopup("The process has been cancelled.");
-            return;
-        }
 
-        progress += 10;
-        progressBar.style.width = `${progress}%`;
-        percentageText.textContent = `${progress}%`;
+            if (progress >= 100) {
+                showCompletionPopup("Training completed successfully!");
+            }
+        };
 
-        if (progress >= 100) {
-            clearInterval(interval);
-            overlay.style.display = "none";
-            loadingContainer.style.display = "none";
-            const algorithmNames = {
-                Algorithm1: "Linear Regression",
-                Algorithm2: "Decision Tree",
-                Algorithm3: "Random Forest",
-                Algorithm4: "Gradient Boosting",
-                Algorithm5: "Support Vector Machine",
-                Algorithm6: "Neural Network"
-            };
+        readStream();
+    })
+    .catch(error => {
+        console.error(error);
+        stopWaveEffect(); // Dừng hiệu ứng gợn sóng khi lỗi xảy ra
+        overlay.style.display = "none";
+        loadingContainer.style.display = "none";
+        showPopup("An error occurred during training.");
+    });
 
-            showCompletionPopup("Training completed with algorithms: " + algorithms.map(algo => algorithmNames[algo]).join(", "));
-        }
-    }, 500);
-
-    // Xử lý khi nhấn nút "Stop"
     stopButton.addEventListener("click", function () {
         isStopped = true;
     });
 }
+
+
+
+
 
 
 

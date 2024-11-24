@@ -1,9 +1,12 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, session, render_template, has_request_context, make_response
+from flask import Flask, request, jsonify, send_from_directory, redirect, url_for, session, render_template, has_request_context, make_response, Response
 import pandas as pd
 import os
+import json
+import hashlib
 import numpy as np
 import matplotlib
 import uuid
+import threading
 import mysql.connector
 matplotlib.use('Agg')  # Sử dụng backend 'Agg' để không yêu cầu giao diện GUI
 import matplotlib.pyplot as plt
@@ -11,6 +14,7 @@ import time
 
 from ML_main import reject
 from ML_main import test_data
+from ML_main import Create_data_new
 
 from ML_Database import read_data_from_mysql
 from ML_Database import write_data_to_mysql
@@ -22,7 +26,8 @@ import tensorflow as tf
 app = Flask(__name__, static_folder='static')
 app.secret_key = os.urandom(24)
 
-status_upload = False
+stop_training_flags = {}
+
 
 #************************************************************************************************************** */
 #************************************************************************************************************** */
@@ -174,14 +179,13 @@ def send_data():
 @app.route('/run_dashboard', methods=['POST'])
 def run_dashboard():
     try:
-        data_input = request.json  # Lấy dữ liệu từ JSON
-        print(data_input)  # Kiểm tra dữ liệu nhận được
+        data_input = request.json
+        print(data_input)
 
-        # Kiểm tra và chuyển đổi giá trị
         pig_id = int(data_input['id']) if data_input['id'] else None
         first_day = int(data_input['first_day']) if data_input['first_day'] else None
         last_day = int(data_input['last_day']) if data_input['last_day'] else None
-        algorithm = data_input['algorithm']  # Lấy giá trị của thuật toán
+        algorithm = data_input['algorithm']
 
         if pig_id is None or first_day is None or last_day is None:
             return jsonify({"error": "ID, First Day, and Last Day must be provided."}), 400
@@ -189,36 +193,125 @@ def run_dashboard():
         if not isinstance(first_day, int) or not isinstance(last_day, int) or first_day > last_day or last_day < 1 or first_day < 1:
             return jsonify({"error": "Error: First Day or Last Day is invalid"}), 400
 
-        session_id = session.get('session_id')
-        if not session_id:
-            session_new_data = None
+        use_default = session.get('use_default_data', True)  # Mặc định sử dụng database mặc định
+
+        session_id_mysql = None
+        if not use_default:
+            session_id = session.get('session_id')
+            if session_id:
+                session_id_mysql = get_session_id_mysql(session_id)
+                if not check_table_exist(f"input_user_{session_id_mysql}"):
+                    session_id_mysql = None
         else:
-            session_id_mysql = get_session_id_mysql(session_id)
-            if check_table_exist(f"input_user_{session_id_mysql}"):   
-                session_new_data = session_id_mysql
-            else:
-                session_new_data = None
+            print("Đang sử dụng database mặc định")
             
-        status_result, barchart_data, donut_data = reject(pig_id, first_day, last_day, algorithm, session_new_data)
-        print("good")
+        status_result, barchart_data, donut_data = reject(pig_id, first_day, last_day, algorithm, session_id_mysql)
         
-        print(status_result)
         if status_result == 400:
             return jsonify({"error": "Invalid input."}), 400
 
-        # # Gọi hàm để dự đoán và vẽ đồ thị
         result = show_all_chart(donut_data, barchart_data, pig_id, algorithm)
+        return jsonify(result)
 
-        return jsonify(result)  # Trả về kết quả dưới dạng JSON
     except Exception as e:
-        print(f"Error: {str(e)}")  # In ra lỗi
+        print(f"Error: {str(e)}")
         return jsonify({"error": str(e)}), 400
+
     
 #************************************************************************************************************** */
 #************************************************************************************************************** */
-@app.route('/training')
-def training():
-    return app.send_static_file('index_training.html')
+@app.route('/train_model', methods=['POST'])
+def train_model():
+    data = request.get_json()
+    algorithms = data.get("algorithms", [])
+    session_id = session.get('session_id')
+    if not session_id:
+        return jsonify({"error": "No session ID found."}), 400
+
+    session_new_data = get_session_id_mysql(session_id)
+    if not algorithms:
+        return jsonify({"error": "No algorithms selected"}), 400
+
+    # Khởi tạo trạng thái dừng nếu chưa có
+    stop_training_flags[session_id] = False
+
+    def generate_progress(algorithms, session_new_data):
+        try:
+            total_steps = 100
+            first_day = 1
+            last_day = 20
+            time_step = 30
+
+            if len(algorithms) == 1:
+                time_step = 50
+                
+            # Giả lập tiến độ
+            for progress in range(time_step):
+                if stop_training_flags[session_id]:
+                    yield "error: Training stopped by user.\n"
+                    return
+                time.sleep(0.1)
+                yield f"{progress}\n"
+                
+            print("len(algorithms): ", len(algorithms))
+                
+
+            # Thực hiện training
+            for algorithm in algorithms:
+                if stop_training_flags[session_id]:
+                    yield "error: Training stopped by user.\n"
+                    return
+                time_step_prev = time_step
+                if time_step + int(50 / len(algorithms)) < 100:
+                    time_step += int(50 / len(algorithms))
+                    
+                for progress in range(time_step_prev, time_step):
+                    if stop_training_flags[session_id]:
+                        yield "error: Training stopped by user.\n"
+                        return
+                    time.sleep(0.1)
+                    yield f"{progress}\n"
+                
+                create_status = Create_data_new(first_day, last_day, algorithm, session_new_data)
+                if create_status != 200:
+                    if algorithm == "algorithm1":
+                        name_algorithm = "Linear Regression"
+                    elif algorithm == "algorithm2":
+                        name_algorithm = "Gradient Boosting Regression"
+                    elif algorithm == "algorithm3":
+                        name_algorithm = "K Neighbors Regression"
+                    elif algorithm == "algorithm4":
+                        name_algorithm = "MLP Regressor"
+                    elif algorithm == "algorithm5":
+                        name_algorithm = "Support Vector Regression"
+                    elif algorithm == "algorithm6":
+                        name_algorithm = "Random Forest Regressor"
+                    yield f"error: Training failed for {name_algorithm}. Please check your data again.\n"
+                    return
+
+            # Tiến độ hoàn thành
+            for progress in range(time_step, 101):
+                if stop_training_flags[session_id]:
+                    yield "error: Training stopped by user.\n"
+                    return
+                time.sleep(0.1)
+                yield f"{progress}\n"
+        except Exception as e:
+            yield f"error: {str(e)}\n"
+
+    return Response(generate_progress(algorithms, session_new_data), content_type='text/plain')
+
+
+@app.route('/stop_training', methods=['POST'])
+def stop_training():
+    session_id = session.get('session_id')
+    if session_id in stop_training_flags:
+        stop_training_flags[session_id] = True
+        return jsonify({"message": "Training stopped."}), 200
+    return jsonify({"error": "No training in progress."}), 400
+
+#***********************************************************************************************************************
+
 
 # Route để tải lên file
 @app.route('/upload', methods=['POST'])
@@ -235,42 +328,44 @@ def upload_file():
     if not session_id:
         return jsonify({"error": "No session ID found."}), 400
 
-    
-    session_id_mysql = get_session_id_mysql(session_id)    
+    session_id_mysql = get_session_id_mysql(session_id)
     file_path = os.path.join('includes', 'input_data', f'user_data_{session_id_mysql}.csv')
-    
+
     # Xóa file cũ nếu tồn tại
     if os.path.exists(file_path):
         os.remove(file_path)
-        
+
     file.save(file_path)
-    
-    status = write_data_to_mysql("renew","input", "user", "all", "all", "algorithm1", session_id_mysql, link_csv=file_path)
+
+    # Ghi dữ liệu vào MySQL
+    status = write_data_to_mysql("renew", "input", "user", "all", "all", "algorithm1", session_id_mysql, link_csv=file_path)
     if status == 401:
         if check_table_exist(f"input_user_{session_id_mysql}"):
             drop_table(f"input_user_{session_id_mysql}")
         return jsonify({"error": "Database error"}), 400
     os.remove(file_path)
-    
-    # Cập nhật biến toàn cục status_upload
-    global status_upload
-    if status == 200:
-        status_upload = True
-    return jsonify({"message": "Upload successful!"}), 200
+
+    # Cập nhật trạng thái sử dụng database
+    session['use_default_data'] = False
+    return jsonify({
+        "message": "Upload successful!",
+        "use_default_data": session['use_default_data']
+    }), 200
+
 
 # Route để chuyển về database mặc định
 @app.route('/set_default_data', methods=['POST'])
 def set_default_data():
-    session_id = session.get('session_id')
-    if not session_id:
-        return jsonify({"error": "No session ID found."}), 400
-    
-    session_id_mysql = get_session_id_mysql(session_id)
-    if session_id_mysql:
-        global status_upload
-        status_upload = False
-            
-    return jsonify({"message": "Switched to default database"}), 200
+    use_default = session.get('use_default_data', True)
+    session['use_default_data'] = not use_default  # Chuyển đổi trạng thái
+    state_message = "Switched to default database" if not use_default else "Switched to uploaded database"
+    return jsonify({"message": state_message}), 200
+
+# Route để lấy trạng thái của dữ liệu mặc định
+@app.route('/get_default_data_status', methods=['GET'])
+def get_default_data_status():
+    use_default = session.get('use_default_data', True)  # Lấy trạng thái từ session
+    return jsonify({"use_default_data": use_default})
 
 # @app.route('/clear_session', methods=['POST'])
 # def clear_session():
@@ -297,38 +392,83 @@ def cleanup_session(exception=None):
 
 @app.route('/get_all_summaries', methods=['GET'])
 def get_all_summaries():
-    summaries = {
-        "tables": {},  # Đưa dữ liệu bảng vào lớp "tables"
-        "dfi_error": {},  # Đưa dữ liệu lỗi DFI vào lớp riêng
-        "weight_error": {}  # Đưa dữ liệu lỗi Weight vào lớp riêng
-    }
+    use_default = session.get('use_default_data', True)  # Mặc định sử dụng database mặc định
+    session_id_mysql = None
+    if not use_default:
+        session_id = session.get('session_id')
+        if session_id:
+            session_id_mysql = get_session_id_mysql(session_id)
+            if not check_table_exist(f"input_user_{session_id_mysql}"):
+                session_id_mysql = None
+    else:
+        print("Đang sử dụng database mặc định")
+        
+    if session_id_mysql is None:
+        summaries = {
+            "tables": {},  # Đưa dữ liệu bảng vào lớp "tables"
+            "dfi_error": {},  # Đưa dữ liệu lỗi DFI vào lớp riêng
+            "weight_error": {}  # Đưa dữ liệu lỗi Weight vào lớp riêng
+        }
 
-    tables = [
-        "output_summary_all_default_dfi",
-        "output_summary_all_default_weight",
-        "output_summary_mean_default_dfi",
-        "output_summary_mean_default_weight",
-    ]
+        tables = [
+            "output_summary_all_default_dfi",
+            "output_summary_all_default_weight",
+            "output_summary_mean_default_dfi",
+            "output_summary_mean_default_weight",
+        ]
 
-    error_tables = {
-        "weight_error": [
-            "output_algorithm1_default_weight_error",
-            "output_algorithm2_default_weight_error",
-            "output_algorithm3_default_weight_error",
-            "output_algorithm4_default_weight_error",
-            "output_algorithm5_default_weight_error",
-            "output_algorithm6_default_weight_error",
-        ],
-        "dfi_error": [
-            "output_algorithm1_default_dfi_error",
-            "output_algorithm2_default_dfi_error",
-            "output_algorithm3_default_dfi_error",
-            "output_algorithm4_default_dfi_error",
-            "output_algorithm5_default_dfi_error",
-            "output_algorithm6_default_dfi_error",
-        ],
-    }
+        error_tables = {
+            "weight_error": [
+                "output_algorithm1_default_weight_error",
+                "output_algorithm2_default_weight_error",
+                "output_algorithm3_default_weight_error",
+                "output_algorithm4_default_weight_error",
+                "output_algorithm5_default_weight_error",
+                "output_algorithm6_default_weight_error",
+            ],
+            "dfi_error": [
+                "output_algorithm1_default_dfi_error",
+                "output_algorithm2_default_dfi_error",
+                "output_algorithm3_default_dfi_error",
+                "output_algorithm4_default_dfi_error",
+                "output_algorithm5_default_dfi_error",
+                "output_algorithm6_default_dfi_error",
+            ],
+        }
+        
+    else:
+        summaries = {
+            "tables": {},  # Đưa dữ liệu bảng vào lớp "tables"
+            "dfi_error": {},  # Đưa dữ liệu lỗi DFI vào lớp riêng
+            "weight_error": {}  # Đưa dữ liệu lỗi Weight vào lớp riêng
+        }
 
+        tables = [
+            f"output_summary_all_user_dfi_{session_id_mysql}",
+            f"output_summary_all_user_weight_{session_id_mysql}",
+            f"output_summary_mean_user_dfi_{session_id_mysql}",
+            f"output_summary_mean_user_weight_{session_id_mysql}",
+        ]
+
+        error_tables = {
+            "weight_error": [
+                f"output_algorithm1_user_weight_error_{session_id_mysql}",
+                f"output_algorithm2_user_weight_error_{session_id_mysql}",
+                f"output_algorithm3_user_weight_error_{session_id_mysql}",
+                f"output_algorithm4_user_weight_error_{session_id_mysql}",
+                f"output_algorithm5_user_weight_error_{session_id_mysql}",
+                f"output_algorithm6_user_weight_error_{session_id_mysql}",
+            ],
+            "dfi_error": [
+                f"output_algorithm1_user_dfi_error_{session_id_mysql}",
+                f"output_algorithm2_user_dfi_error_{session_id_mysql}",
+                f"output_algorithm3_user_dfi_error_{session_id_mysql}",
+                f"output_algorithm4_user_dfi_error_{session_id_mysql}",
+                f"output_algorithm5_user_dfi_error_{session_id_mysql}",
+                f"output_algorithm6_user_dfi_error_{session_id_mysql}",
+            ],
+        }
+    
     # Lấy dữ liệu summary
     for table in tables:
         if check_table_exist(table):
@@ -354,7 +494,7 @@ def get_session_id_mysql(session_id):
     if not session_id:
         return None
     else:   
-        session_id_mysql = session_id.replace('-', '_')
+        session_id_mysql = hashlib.md5(session_id.encode()).hexdigest()[:10]
         return session_id_mysql
 
 def show_all_chart(donut_data, barchart_data, pig_id, algorithm):

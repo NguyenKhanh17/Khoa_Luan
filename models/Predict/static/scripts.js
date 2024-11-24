@@ -17,16 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 //Chuyển input
 function runModelData() {
-    const first_day = document.getElementById('input-first-day').value;
-    const last_day = document.getElementById('input-last-day').value;
-    const id = document.getElementById('input-id').value;
+    const first_day_input = document.getElementById('input-first-day').value;
+    const last_day_input = document.getElementById('input-last-day').value;
+    const id_input = document.getElementById('input-id').value;
     const algorithm = document.getElementById('algorithm-select').value;
 
     // Kiểm tra điều kiện input
-    if (!first_day || !last_day || !id || !algorithm) {
+    if (!first_day_input || !last_day_input || !id_input || !algorithm) {
         showPopup("Please fill in all the information."); // Hiển thị popup nếu có trường trống
         return; // Dừng hàm nếu có trường trống
     }
+    console.log("first_day: ", first_day_input, "last_day: ", last_day_input, "id: ", id_input, "algorithm: ", algorithm);
+    let first_day = parseInt(first_day_input);
+    let last_day = parseInt(last_day_input);
+    let id = parseInt(id_input);
 
     if (first_day > last_day) {
         showPopup("Start date must be earlier than end date.");

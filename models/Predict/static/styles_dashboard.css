@@ -434,6 +434,145 @@ footer {
     background-color: #45a049; /* Màu khi rê chuột */
 }
 
+/****************/
+
+/* CSS cho popup_file và popup_algorithm */
+#popup_file, #popup_algorithm {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #f9f9f9;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    animation: fadeIn 0.4s ease-out;
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+}
+
+/* Hiệu ứng mờ và dịch chuyển */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Tối ưu hóa kích thước và bố cục */
+#popup_file, #popup_algorithm {
+    max-width: 420px;
+    width: 90%;
+    line-height: 1.6;
+}
+
+/* Phần tiêu đề */
+#popup_file h3, #popup_algorithm h3 {
+    margin: 0 0 20px;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+/* Phong cách cho các nút */
+#popup_file .btn, #popup_algorithm .btn {
+    display: inline-block;
+    margin: 10px 5px;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    width: calc(50% - 10px); /* Cân bằng chiều rộng */
+}
+
+#popup_algorithm .btn {
+    margin: 10px 50px;
+}
+
+#popup_file .btn:hover, #popup_algorithm .btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+#popup_file .btn:active, #popup_algorithm .btn:active {
+    transform: scale(0.95);
+}
+
+/* Cải thiện giao diện checkbox trong popup thuật toán */
+.algorithm-label {
+    display: block;
+    margin: 5px 0;
+    font-size: 1rem;
+    font-weight: normal;
+    color: #333;
+}
+
+#popup_algorithm form {
+    display: flex;
+    flex-direction: column; /* Sắp xếp các mục theo chiều dọc */
+    align-items: flex-start; /* Căn tất cả về bên trái */
+    margin-left: 60px;
+}
+
+#popup_algorithm label {
+    display: flex;
+    align-items: center; /* Căn giữa checkbox và văn bản theo chiều dọc */
+    gap: 10px; /* Khoảng cách giữa checkbox và văn bản */
+    font-size: 1rem;
+    color: #333;
+}
+
+#popup_algorithm input[type="checkbox"] {
+    appearance: none;
+    background-color: #fff;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+    flex-shrink: 0; /* Đảm bảo checkbox không bị co lại */
+}
+
+#popup_algorithm input[type="checkbox"]:checked {
+    background-color: #007bff;
+    border-color: #0056b3;
+    box-shadow: inset 0 0 0 3px #fff;
+}
+
+#popup_algorithm input[type="checkbox"]:hover {
+    transform: scale(1.3); /* Hiệu ứng khi hover */
+}
+
+/* Nút đóng popup */
+.popup-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: transparent;
+    border: none;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s ease;
+}
+
+.popup-close:hover {
+    color: #cb1414;
+}
+
+
+
 /* Hiệu ứng chuyển động */
 @keyframes fadeIn {
     from { opacity: 0; }
