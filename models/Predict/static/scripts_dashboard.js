@@ -49,7 +49,7 @@ const translations = {
             "SVR",
             "Random Forest Regressor",
             "Long Short Term Memory",
-            "LSTM (Custom Implementation)"
+            "XGBoost Regressor"
         ],
         runModel: "Run Model",
         exportPDF: "Export PDF"
@@ -78,7 +78,7 @@ const translations = {
             "Thuật Toán SVR",
             "Thuật Toán Rừng Ngẫu Nhiên",
             "LSTM (Bộ Nhớ Ngắn-Dài)",
-            "LSTM (Triển Khai Tùy Chỉnh)"
+            "Thuật Toán XGBoost"
         ],
         runModel: "Chạy Mô Hình",
         exportPDF: "Xuất PDF"
@@ -107,7 +107,7 @@ const translations = {
             "支持向量回归",
             "随机森林回归",
             "长短期记忆",
-            "LSTM（自定义实现）"
+            "XGBoost回归"
         ],
         runModel: "运行模型",
         exportPDF: "导出PDF"
@@ -932,7 +932,7 @@ document.getElementById("exportPDF").addEventListener("click", function () {
                 case "algorithm5": return "Support Vector Regression";
                 case "algorithm6": return "Random Forest Regressor";
                 case "algorithm7": return "Long Short Term Memory";
-                case "algorithm8": return "LSTM (Custom Implementation)";
+                case "algorithm8": return "XGBoost Regressor";
                 default: return "Unknown";
             }
         }

@@ -8,21 +8,19 @@ import os
 import mysql.connector
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import tensorflow as tf
-from ML_Long_Term_Memory import train_LSTM
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
-#from xgboost import XGBRegressor
+
 from sklearn.neural_network import MLPRegressor
 import numpy as np
+import xgboost as xgb
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
-
-from ML_Long_Term_Memory import train_LSTM, create_time_series_for_LSTM
 
  
 from sklearn.model_selection import train_test_split
@@ -99,25 +97,31 @@ def Algorithm_Case(Algorithm, X_train, y_train, type_predict):
             max_features='sqrt'
         )
         model.fit(X_train, y_train)
-    elif Algorithm == 'algorithm7':
-        time_steps = 7 if type_predict == 'dfi' else 1  # Chọn số bước thời gian dựa trên type_predict
-        input_features = 8 if type_predict == 'dfi' else 3  # Số đặc trưng
-        output_features = 1
-
-        # Chuyển dữ liệu thành time series
-        X_train, y_train = create_time_series_for_LSTM(X_train, y_train, time_steps)
-
-        # Gọi hàm train_LSTM
-        model = train_LSTM(X_train, y_train, input_features, output_features)
+    elif Algorithm == 'algorithm7' and type_predict == "dfi":
+        model = Sequential([
+            LSTM(64, activation='relu', return_sequences=True, input_shape=(7, 2)),
+            LSTM(32, activation='relu'),
+            Dense(1)  # Dự đoán DFI hôm nay
+        ])
+        model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    elif Algorithm == 'algorithm7' and type_predict == "weight":
+        # Mô hình dự đoán Weight
+        
+        model = Sequential([
+            LSTM(64, activation='relu', return_sequences=True, input_shape=(1, 3)),
+            LSTM(32, activation='relu'),
+            Dense(1)  # Dự đoán DFI hôm nay
+        ])
+        model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+    elif Algorithm == 'algorithm8':
+        model = xgb.XGBRegressor(objective='reg:squarederror', eval_metric='rmse')
+        model.fit(X_train, y_train)
     else:
         return "Không có thuật toán phù hợp"
     return model
 
-def predict_input_custom(model, input_model, algorithm):
-    if algorithm == 'algorithm8':
-        predictions = model.forward(input_model)
-    else:
-        predictions = model.predict(input_model)
+def predict_input_custom(model, input_model):
+    predictions = model.predict(input_model)
     return predictions
 
 #****************************************************   1   ************************************************************
@@ -157,20 +161,37 @@ def data_preprocessing_DFI(data):
 def model_training_DFI(data, algorithm):
     data = data.dropna()
     
-    X = data[['age'] + [f'pre_dfi_{i}' for i in range(1, 8)]]  # Sử dụng 7 giá trị DFI trước và tuổi hiện tại
-    y = data['dfi']  # Cột DFI
+    if algorithm == 'algorithm7':
+        # Tạo danh sách các cột mới age_day_{i} với giá trị đều bằng cột age
+        for i in range(1, 8):
+            data[f'age_day_{i}'] = data['age']
+
+        # Lấy danh sách các cột mới
+        age_columns = [f'age_day_{i}' for i in range(1, 8)]
+        pre_dfi_columns = [f'pre_dfi_{i}' for i in range(1, 8)]
+
+        # Lựa chọn các cột để tạo X
+        selected_columns = age_columns + pre_dfi_columns
+
+        # Chuyển đổi dữ liệu thành mảng NumPy
+        data_values = data[selected_columns].values  # Đây là mảng 2D với kích thước (n_samples, 14)
+        
+        # Chuyển đổi mảng 2D thành mảng 3D
+        # Giả sử mỗi cột (age_day_i, pre_dfi_i) là một chiều trong mảng 3D, và 7 là số chiều thứ 3
+        X = data_values.reshape(-1, 7, 2)  # Reshape thành mảng 3D với kích thước (n_samples, 7, 2)
+        
+        y = data['dfi'].values  # Lấy mảng NumPy từ cột 'dfi'
+        # Đảm bảo y có kích thước (num_samples,)
+        y = y.reshape(-1)  # Chuyển đổi về mảng 1 chiều với kích thước (num_samples,)
+    else:
+        X = data[['age'] + [f'pre_dfi_{i}' for i in range(1, 8)]]  # Sử dụng 7 giá trị DFI trước và tuổi hiện tại
+        y = data['dfi']  # Cột DFI
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
     #Khởi tạo và huấn luyện mô hình
     model_dfi = Algorithm_Case(algorithm, X_train, y_train, 'dfi') 
-    
-    # Dự đoán với bộ test
-    if algorithm == 'algorithm7':
-        # Đảm bảo dữ liệu test có cùng dạng time series
-        time_steps = 7
-        X_test, y_test = create_time_series_for_LSTM(X_test, y_test, time_steps)
         
-    predictions = predict_input_custom(model_dfi, X_test, algorithm)
+    predictions = predict_input_custom(model_dfi, X_test)
     
     mae = mean_absolute_error(y_test, predictions)
     mse = mean_squared_error(y_test, predictions)
@@ -209,14 +230,34 @@ def predict_DFI(data, pig_id, predict_age, algorithm):
         #data: pig_data
         #age_input: int
         #out: dataframe(int,float(7))
-        def input_model_DFI(data_input, age_input):
-            input_model_df = pd.DataFrame({'age': [age_input]}, columns=['age'] + [f'pre_dfi_{i}' for i in range(1, 8)])  # Tạo DataFrame với 8 cột, gán giá trị age hàng đầu tiên là age_input
-            for i in range(1, 8):
-                previous_dfi = data_input[data_input['age'] == (age_input - i)]['dfi'].values
-                if previous_dfi.size == 0:
-                    break
-                input_model_df[f'pre_dfi_{i}'] = previous_dfi[0]  # Gán giá trị DFI trước đó   
-            return input_model_df
+        def input_model_DFI(data_input, age_input, algorithm):
+            if algorithm == 'algorithm7':
+                # Tạo DataFrame với 14 cột: 7 cột age_day_{i} và 7 cột pre_dfi_{i}
+                input_model_df = pd.DataFrame(
+                    {**{f'age_day_{i}': [age_input] for i in range(1, 8)},  # Tạo 7 cột age_day_{i} với giá trị age_input
+                    **{f'pre_dfi_{i}': [0] for i in range(1, 8)}},  # Khởi tạo 7 cột pre_dfi_{i} với giá trị mặc định là 0
+                    columns=[f'age_day_{i}' for i in range(1, 8)] + [f'pre_dfi_{i}' for i in range(1, 8)]  # Đảm bảo thứ tự cột
+                )
+
+                # Gán giá trị pre_dfi từ dữ liệu đầu vào
+                for i in range(1, 8):
+                    previous_dfi = data_input[data_input['age'] == (age_input - i)]['dfi'].values
+                    if previous_dfi.size == 0:
+                        break
+                    input_model_df[f'pre_dfi_{i}'] = previous_dfi[0]  # Gán giá trị DFI trước đó
+
+                # Chuyển DataFrame thành mảng 3D
+                input_model_final = input_model_df.values.reshape(1, 7, 2)  # Đầu vào cho một mẫu duy nhất
+
+            else:
+                input_model_final = pd.DataFrame({'age': [age_input]}, columns=['age'] + [f'pre_dfi_{i}' for i in range(1, 8)])  # Tạo DataFrame với 8 cột, gán giá trị age hàng đầu tiên là age_input
+                for i in range(1, 8):
+                    previous_dfi = data_input[data_input['age'] == (age_input - i)]['dfi'].values
+                    if previous_dfi.size == 0:
+                        break
+                    input_model_final[f'pre_dfi_{i}'] = previous_dfi[0]  # Gán giá trị DFI trước đó  
+                     
+            return input_model_final
         
         #Dự đoán
         max_age = pig_data['age'].max()
@@ -230,20 +271,20 @@ def predict_DFI(data, pig_id, predict_age, algorithm):
                 #lấy dữ liệu đầu vào phù hợp
                 pig_data = data_preprocessing(data, pig_id)
                 
-                input_model = input_model_DFI(pig_data, max_age)
+                input_model = input_model_DFI(pig_data, max_age, algorithm)
                 
                 if input_model.isnull().any().any():
                     return None
                 
                 print(f"Ngày {predict_age}:")
-                predict_dfi = float(predict_input_custom(model, input_model, algorithm).round(3))
+                predict_dfi = float(predict_input_custom(model, input_model).round(3))
                 data = update_Data_DFI(data, pig_id, max_age, predict_dfi)
     
             return predict_dfi
         else:
             #lấy dữ liệu đầu vào phù hợp
             
-            input_model = input_model_DFI(pig_data, predict_age)
+            input_model = input_model_DFI(pig_data, predict_age, algorithm)
             
             if input_model.shape[0] < 7:
                 dfi_value = pig_data[pig_data['age'] == predict_age]['dfi'].values
@@ -252,7 +293,7 @@ def predict_DFI(data, pig_id, predict_age, algorithm):
                 else:
                     return None
             print(f"Ngày {predict_age}:")
-            predict_dfi = float(predict_input_custom(model, input_model, algorithm).round(3))
+            predict_dfi = float(predict_input_custom(model, input_model).round(3))
         return predict_dfi
     
 #****************************************************   2   ************************************************************
@@ -273,17 +314,22 @@ def data_preprocessing_Weight(data):
 def model_training_Weight(data, algorithm):
     data = data.dropna()
     
-    X = data[['age', 'dfi', 'previous_weight']]  # Sử dụng trọng lượng ngày trước, dfi và cfi
-    y = data['weight']  # Cột trọng lượng
+    if algorithm == 'algorithm7':
+        X = data[['age', 'dfi', 'previous_weight']].to_numpy()  # Chuyển đổi DataFrame thành mảng NumPy
+        X = X.reshape(-1, 1, 3)  # Reshape thành mảng 3D với kích thước (n_samples, 7, 3)
+        y = data['weight'].to_numpy()  # Cột trọng lượng
+        # Đảm bảo y có kích thước (num_samples,)
+        y = y.reshape(-1)  # Chuyển đổi về mảng 1 chiều với kích thước (num_samples,)
+    else:
+        X = data[['age', 'dfi', 'previous_weight']]  # Sử dụng trọng lượng ngày trước, dfi và cfi
+        y = data['weight']  # Cột trọng lượng
+    
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     
     model_weight = Algorithm_Case(algorithm, X_train, y_train, 'weight')
          
-    if algorithm == 'algorithm8':
-        predictions = model_weight.forward(X_test)
-    else:   
-        predictions = model_weight.predict(X_test)
+    predictions = predict_input_custom(model_weight, X_test)
     # Tính độ chính xác
     mae = mean_absolute_error(y_test, predictions)
     mse = mean_squared_error(y_test, predictions)
@@ -313,17 +359,23 @@ def predict_Weight(data, pig_id, predict_age, max_age, algorithm):
         # Lấy trọng lượng ngày trước đó
         previous_weight = data_input[data_input['age'] == predict_age_input - 1]['weight']
         if previous_weight.empty:
-            return f"Không có dữ liệu trọng lượng cho ngày tuổi {predict_age_input - 1} của con lợn ID {pig_id}"
+            print(f"Không có dữ liệu trọng lượng cho ngày tuổi {predict_age_input - 1} của con lợn ID {pig_id}")
+            return None
         
         # Lấy DFI hiện tại
         input_model_weight = data_input[data_input['age'] == predict_age_input][['dfi']]
         if input_model_weight.empty:
-            return f"Không có dữ liệu cho dfi ngày {predict_age_input} của con lợn ID {pig_id}"
+            print(f"Không có dữ liệu cho dfi ngày {predict_age_input} của con lợn ID {pig_id}")
+            return None
 
         # Đảm bảo thứ tự cột đúng
         input_model_weight['previous_weight'] = previous_weight.values[0]
         input_model_weight['age'] = predict_age_input
         input_model_weight = input_model_weight[['age', 'dfi', 'previous_weight']]  # Đảm bảo thứ tự cột
+        
+        if algorithm == 'algorithm7':
+            input_model_weight = input_model_weight.to_numpy()
+            input_model_weight = input_model_weight.reshape(1, 1, 3)  # Reshape thành mảng 3D với kích thước (1, 7, 3)
         return input_model_weight
     
     if predict_age > max_age:
@@ -333,8 +385,16 @@ def predict_Weight(data, pig_id, predict_age, max_age, algorithm):
             pig_data = data_preprocessing(data, pig_id)
             
             input_model = input_Model_Weight(pig_data, max_age)
+            
+            if algorithm == 'algorithm7':
+                if np.isnan(input_model[0, 1:, :]).any():  # Kiểm tra NaN ở các trục tương ứng
+                    predict_weight = None
+            else:
+                if input_model.iloc[0, 1:].isnull().any():
+                    predict_weight = None
+                    
             print(f"Ngày {predict_age}:")
-            predict_weight = round(float(predict_input_custom(model, input_model, algorithm)), 3)
+            predict_weight = round(float(predict_input_custom(model, input_model)), 3)
                   
             data = update_Data_Weight(data, pig_id, max_age, predict_weight)
              
@@ -343,7 +403,7 @@ def predict_Weight(data, pig_id, predict_age, max_age, algorithm):
         
         input_model = input_Model_Weight(pig_data, predict_age)
         print(f"Ngày {predict_age}:")
-        predict_weight = round(float(predict_input_custom(model, input_model, algorithm)), 3) 
+        predict_weight = round(float(predict_input_custom(model, input_model)), 3) 
     return predict_weight
 
 #****************************************************   3   ************************************************************        
@@ -377,18 +437,39 @@ def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
         #data: pig_data
         #age_input: int
         #out: dataframe(int,float(7))
-        def input_model_DFI(data_input, age_input):
-            input_model_df = pd.DataFrame({'age': [age_input]}, columns=['age'] + [f'pre_dfi_{i}' for i in range(1, 8)])  # Tạo DataFrame với 8 cột, gán giá trị age hàng đầu tiên là age_input
-            for i in range(1, 8):
-                if (age_input - i <= 0):
-                    input_model_df[f'pre_dfi_{i}'] = None
-                    continue
-                previous_dfi = data_input[data_input['age'] == (age_input - i)]['dfi'].values
-                if previous_dfi.size == 0:
-                    input_model_df[f'pre_dfi_{i}'] = None
-                    continue
-                input_model_df[f'pre_dfi_{i}'] = previous_dfi[0]  # Gán giá trị DFI trước đó   
-            return input_model_df
+        def input_model_DFI(data_input, age_input, algorithm):
+            
+            if algorithm == 'algorithm7':
+                # Tạo DataFrame với 14 cột: 7 cột age_day_{i} và 7 cột pre_dfi_{i}
+                input_model_df = pd.DataFrame(
+                    {**{f'age_day_{i}': [age_input] for i in range(1, 8)},  # Tạo 7 cột age_day_{i} với giá trị age_input
+                    **{f'pre_dfi_{i}': [0] for i in range(1, 8)}},  # Khởi tạo 7 cột pre_dfi_{i} với giá trị mặc định là 0
+                    columns=[f'age_day_{i}' for i in range(1, 8)] + [f'pre_dfi_{i}' for i in range(1, 8)]  # Đảm bảo thứ tự cột
+                )
+
+                # Gán giá trị pre_dfi từ dữ liệu đầu vào
+                for i in range(1, 8):
+                    previous_dfi = data_input[data_input['age'] == (age_input - i)]['dfi'].values
+                    if previous_dfi.size == 0:
+                        break
+                    input_model_df[f'pre_dfi_{i}'] = previous_dfi[0]  # Gán giá trị DFI trước đó
+
+                # Chuyển DataFrame thành mảng 3D
+                input_model_final = input_model_df.to_numpy()
+                input_model_final = input_model_final.reshape(1, 7, 2)  # Đầu vào cho một mẫu duy nhất
+
+            else:
+                input_model_final = pd.DataFrame({'age': [age_input]}, columns=['age'] + [f'pre_dfi_{i}' for i in range(1, 8)])  # Tạo DataFrame với 8 cột, gán giá trị age hàng đầu tiên là age_input
+                for i in range(1, 8):
+                    if (age_input - i <= 0):
+                        input_model_final[f'pre_dfi_{i}'] = None
+                        continue
+                    previous_dfi = data_input[data_input['age'] == (age_input - i)]['dfi'].values
+                    if previous_dfi.size == 0:
+                        input_model_final[f'pre_dfi_{i}'] = None
+                        continue
+                    input_model_final[f'pre_dfi_{i}'] = previous_dfi[0]  # Gán giá trị DFI trước đó   
+            return input_model_final
             
         age_end = last_day
         age_start = first_day - 1
@@ -400,18 +481,36 @@ def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
             #lấy dữ liệu đầu vào phù hợp
             pig_data = data_preprocessing(data, pig_id)
                 
-            input_model = input_model_DFI(pig_data, age_start)
+            input_model = input_model_DFI(pig_data, age_start, algorithm)
             
-            if input_model.iloc[0, 1:].isnull().any():
-                dfi_value = pig_data[pig_data['age'] == age_start]['dfi'].values
-                if dfi_value.size > 0:
-                    results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [dfi_value[0]]})], ignore_index=True)
-                    continue
-                else:
-                    results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [None]})], ignore_index=True)
-                    continue
+            if algorithm == 'algorithm7':
+                if np.isnan(input_model[0, 1:, :]).any():  # Kiểm tra NaN ở các trục tương ứng
+                    dfi_value = pig_data[pig_data['age'] == age_start]['dfi'].to_numpy()
+                    if dfi_value.size > 0:
+                        # Thêm dữ liệu mới với age_start và dfi_value[0]
+                        results = pd.concat(
+                            [results, pd.DataFrame({'age': [age_start], 'dfi': [dfi_value[0]]})],
+                            ignore_index=True
+                        )
+                        continue
+                    else:
+                        # Thêm dữ liệu mới với age_start và giá trị None
+                        results = pd.concat(
+                            [results, pd.DataFrame({'age': [age_start], 'dfi': [None]})],
+                            ignore_index=True
+                        )
+                        continue
+            else:
+                if input_model.iloc[0, 1:].isnull().any():
+                    dfi_value = pig_data[pig_data['age'] == age_start]['dfi'].values
+                    if dfi_value.size > 0:
+                        results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [dfi_value[0]]})], ignore_index=True)
+                        continue
+                    else:
+                        results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [None]})], ignore_index=True)
+                        continue
             print(f"Ngày {age_start}:")
-            predict_dfi = float(predict_input_custom(model, input_model, algorithm).round(3))
+            predict_dfi = float(predict_input_custom(model, input_model).round(3))
             data = update_Data_DFI(data, pig_id, age_start, predict_dfi)
             results = pd.concat([results, pd.DataFrame({'age': [age_start], 'dfi': [predict_dfi]})], ignore_index=True)
 
@@ -445,7 +544,11 @@ def multi_predict_Weight(data, pig_id, first_day, last_day, algorithm):
         
         # Lấy DFI hiện tại
         predict_dfi_input = data_input[data_input['age'] == predict_age_input]['dfi']
-        input_model_weight = pd.DataFrame(columns=['age', 'dfi', 'previous_weight'])
+        input_model_weight = pd.DataFrame({
+            'age': pd.Series(dtype='int'),
+            'dfi': pd.Series(dtype='float'),
+            'previous_weight': pd.Series(dtype='float')
+        })
         
         if predict_dfi_input.empty:
             total_dfi = pig_data['dfi'].notnull().sum()
@@ -454,12 +557,20 @@ def multi_predict_Weight(data, pig_id, first_day, last_day, algorithm):
                 return None
             predict_dfi_input = predict_DFI(data, pig_id, predict_age_input, algorithm)
         
-        # Đảm bảo thứ tự cột đúng
-        input_model_weight = pd.concat([input_model_weight, pd.DataFrame({
-            'age': [predict_age_input],
-            'dfi': [predict_dfi_input],
-            'previous_weight': [previous_weight.values[0]]
-        })], ignore_index=True)
+        # Đảm bảo thứ tự cột đúng và kiểm tra kiểu dữ liệu
+        try:
+            input_model_weight = pd.concat([input_model_weight, pd.DataFrame({
+                'age': [int(predict_age_input)],
+                'dfi': [float(predict_dfi_input)],
+                'previous_weight': [float(previous_weight.values[0])]
+            })], ignore_index=True)
+            if algorithm == 'algorithm7':
+                input_model_weight = input_model_weight.to_numpy()
+                input_model_weight = input_model_weight.reshape(1, 1, 3)  # Reshape thành mảng 3D với kích thước (1, 7, 3)
+        except Exception as e:
+            print(f"Lỗi khi thêm dữ liệu vào input_model_weight: {e}")
+            return None
+        
         return input_model_weight
     
     age_end = int(last_day)
@@ -479,15 +590,22 @@ def multi_predict_Weight(data, pig_id, first_day, last_day, algorithm):
             results = pd.concat([results, new_row], ignore_index=True)
             continue
         
+        print(f"age_start: {age_start}, type: {type(age_start)}")
         input_model = input_Model_Weight(pig_data, age_start)
         
-        if input_model is None or input_model.isnull().any(axis=1).any():
-            new_row = pd.DataFrame({'age': [int(age_start)], 'weight': [None]})
-            results = pd.concat([results, new_row], ignore_index=True)
-            continue
+        if algorithm == 'algorithm7':
+            if input_model is None or np.isnan(input_model).any():
+                new_row = pd.DataFrame({'age': [int(age_start)], 'weight': [None]})
+                results = pd.concat([results, new_row], ignore_index=True)
+                continue
+        else:
+            if input_model is None or input_model.isnull().any(axis=1).any():
+                new_row = pd.DataFrame({'age': [int(age_start)], 'weight': [None]})
+                results = pd.concat([results, new_row], ignore_index=True)
+                continue
                 
         print(f"ID {pig_id} - Ngày {age_start}:")
-        predict_weight = round(float(predict_input_custom(model, input_model, algorithm)), 3)
+        predict_weight = round(float(predict_input_custom(model, input_model)), 3)
               
         data = update_Data_Weight(data, pig_id, age_start, predict_weight)
         new_row = pd.DataFrame({'age': [int(age_start)], 'weight': [predict_weight]})

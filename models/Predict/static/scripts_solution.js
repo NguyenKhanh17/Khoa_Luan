@@ -111,7 +111,7 @@ const translations = {
         navSolutions: "Giải pháp",
         navDashboard: "Bảng điều khiển",
         navResources: "Tài nguyên",
-        navContact: "Liên hệ với chúng tôi",
+        navContact: "Liên hệ",
         navDocs: "Tài liệu",
         navSupport: "Hỗ trợ",
         headerTitle: "Giải pháp dự đoán cho DFI và trọng lượng heo",

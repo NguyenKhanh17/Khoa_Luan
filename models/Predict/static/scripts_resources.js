@@ -160,7 +160,7 @@ function showAlgorithmPopup() {
                            </label>
                            <label>
                                <input type="checkbox" name="algorithm" value="Algorithm8">
-                               LSTM (Custom Implementation)
+                               XGBoost Regressor
                            </label>
                            <button type="button" id="confirm-algorithm-btn">Confirm</button>
                        </form>
@@ -413,8 +413,8 @@ function changeLanguage(language) {
     };
 
     for (const key in elements) {
-        if (elements[key]) {
-            elements[key].textContent = translations[language][key] || elements[key].textContent;
+        if (elements[key] && translations[language][key]) {
+            elements[key].textContent = translations[language][key];
         }
     }
 }

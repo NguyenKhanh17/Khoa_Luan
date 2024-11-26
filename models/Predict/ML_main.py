@@ -745,8 +745,8 @@ def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algor
 
 #**************************************************    5    ****************************************************************       
 def main():
-    Create_ALL_data_begin('algorithm7', 'dfi')
-    #Create_ALL_data_begin('algorithm1', 'weight')
+    #Create_ALL_data_begin('algorithm7', 'dfi')
+    Create_ALL_data_begin('algorithm7', 'weight')
     
 def main_test():
     paint_metrics('algorithm1')

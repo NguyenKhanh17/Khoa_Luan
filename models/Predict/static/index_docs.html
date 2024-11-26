@@ -25,7 +25,7 @@
             <a href="/docs" class="nav-docs">Docs</a>
             <a href="/support" class="nav-support">Support</a>
             <div class="language-select">
-                <select name="language" id="language-select" onchange="changeLanguage()">
+                <select name="language" id="language-select">
                     <option value="en" selected>English</option>
                     <option value="vi">Vietnamese</option>
                     <option value="zh">Chinese</option>
@@ -50,94 +50,109 @@
                     <h2>Table of Contents</h2>
                     <ul>
                         <li><a href="#linear-regression">Linear Regression</a></li>
-                        <li><a href="#ridge-and-lasso-regression">Ridge and Lasso Regression</a></li>
-                        <li><a href="#decision-tree-regression">Decision Tree Regression</a></li>
-                        <li><a href="#random-forest-regression">Random Forest Regression</a></li>
                         <li><a href="#gradient-boosting">Gradient Boosting</a></li>
                         <li><a href="#knn-regression">K Nearest Neighbors Regression (KNN Regression)</a></li>
-                        <li><a href="#neural-networks">Neural Networks</a></li>
-                        <li><a href="#gaussian-process-regression">Gaussian Process Regression (GPR)</a></li>
+                        <li><a href="#xgboost-regressor">XGBoost Regressor</a></li>
                         <li><a href="#support-vector-regression">Support Vector Regression (SVR)</a></li>
+                        <li><a href="#random-forest-regression">Random Forest Regression</a></li>
+                        <li><a href="#long-short-term-memory">Long Short Term Memory</a></li>
+                        <li><a href="#mlp-regressor">Multi-Layer Perceptron Regressor (MLP Regressor)</a></li>
                     </ul>
                 </div>
 
                 <section id="linear-regression">
-                    <h2>Linear Regression</h2>
-                    <p><strong>Description:</strong> Assumes a linear relationship between input and output variables. This method attempts to optimize the best straight line to predict values.</p>
-                    <p><strong>Use:</strong> Suitable for simple problems, easy to explain, often used as a baseline.</p>
-                    <p><strong>Advantages:</strong> Simple, easy to implement and explain.</p>
-                    <p><strong>Disadvantages:</strong> Not effective when there is high complexity or non-linear relationships.</p>
-                </section>
-
-                <section id="ridge-and-lasso-regression">
-                    <h2>Ridge and Lasso Regression</h2>
-                    <p><strong>Description:</strong> Uses regularization methods to reduce overfitting by adjusting the model's weights.</p>
-                    <p><strong>Use:</strong> Handles high-dimensional data well, filters out unimportant variables (especially Lasso).</p>
-                    <p><strong>Advantages:</strong> Helps control model complexity and reduces overfitting.</p>
-                    <p><strong>Disadvantages:</strong> Requires adjustment of the regularization coefficient.</p>
-                </section>
-
-                <section id="decision-tree-regression">
-                    <h2>Decision Tree Regression</h2>
-                    <p><strong>Description:</strong> Builds a decision tree to divide data and predict output values.</p>
-                    <p><strong>Use:</strong> Good for non-linear data, easy to understand and visualize.</p>
-                    <p><strong>Advantages:</strong> Easy to understand and can handle both numerical and categorical data.</p>
-                    <p><strong>Disadvantages:</strong> Prone to overfitting if not controlled.</p>
-                </section>
-
-                <section id="random-forest-regression">
-                    <h2>Random Forest Regression</h2>
-                    <p><strong>Description:</strong> Uses multiple decision trees to reduce overfitting and increase accuracy.</p>
-                    <p><strong>Use:</strong> Suitable for complex data, can learn from multiple features of the data.</p>
-                    <p><strong>Advantages:</strong> Reduces overfitting and improves prediction accuracy.</p>
-                    <p><strong>Disadvantages:</strong> Consumes computational resources and is harder to interpret than a single tree.</p>
+                    <h2>1. Linear Regression</h2>
+                    <p><strong>Description:</strong> Simplistic model assuming a linear relationship between variables, making it a baseline for predictive tasks.</p>
+                    <p><strong>Application:</strong> Best suited for straightforward relationships like predicting basic feed consumption trends.</p>
+                    <p><strong>Advantages:</strong> Easy to interpret, quick to implement.</p>
+                    <p><strong>Limitations:</strong> Struggles with complex or non-linear patterns.</p>
+                    <button class="view-more-btn" data-algorithm="linear-regression">View more</button>
                 </section>
 
                 <section id="gradient-boosting">
-                    <h2>Gradient Boosting</h2>
-                    <p><strong>Description:</strong> Boosts multiple prediction models sequentially to optimize results.</p>
-                    <p><strong>Use:</strong> Suitable for high-complexity problems, achieves good performance.</p>
-                    <p><strong>Advantages:</strong> High prediction accuracy.</p>
-                    <p><strong>Disadvantages:</strong> Time-consuming to train and prone to overfitting if not tuned properly.</p>
+                    <h2>2. Gradient Boosting</h2>
+                    <p><strong>Description:</strong> Combines weak learners to enhance prediction accuracy, often used for competitive tasks.</p>
+                    <p><strong>Application:</strong> Ideal for capturing intricate patterns in feed and weight changes.</p>
+                    <p><strong>Advantages:</strong> High accuracy, robust for complex datasets.</p>
+                    <p><strong>Limitations:</strong> Computationally intensive, requires careful tuning.</p>
+                    <button class="view-more-btn" data-algorithm="gradient-boosting">View more</button>
                 </section>
 
                 <section id="knn-regression">
-                    <h2>K Nearest Neighbors Regression (KNN Regression)</h2>
-                    <p><strong>Description:</strong> Predicts values based on the nearest points in the feature space.</p>
-                    <p><strong>Use:</strong> Easy to understand, suitable for non-linear data.</p>
-                    <p><strong>Advantages:</strong> Easy to understand and does not require model training.</p>
-                    <p><strong>Disadvantages:</strong> Consumes resources during prediction, effectiveness decreases with large data.</p>
+                    <h2>3. K Nearest Neighbors Regression (KNN Regression)</h2>
+                    <p><strong>Description:</strong> A non-parametric method that predicts outcomes based on the closest training examples in the feature space.</p>
+                    <p><strong>Application:</strong> Useful for datasets with complex relationships where linear assumptions do not hold.</p>
+                    <p><strong>Advantages:</strong> Simple to understand and implement, flexible to different data distributions.</p>
+                    <p><strong>Limitations:</strong> Sensitive to irrelevant features and the choice of distance metric.</p>
+                    <button class="view-more-btn" data-algorithm="knn-regression">View more</button>
                 </section>
 
-                <section id="neural-networks">
-                    <h2>Neural Networks</h2>
-                    <p><strong>Description:</strong> Uses artificial neural network structures to learn and predict from data.</p>
-                    <p><strong>Use:</strong> Suitable for complex and non-linear data problems.</p>
-                    <p><strong>Advantages:</strong> Good learning and generalization capabilities.</p>
-                    <p><strong>Disadvantages:</strong> Requires a lot of data and training time, difficult to interpret.</p>
-                </section>
-
-                <section id="gaussian-process-regression">
-                    <h2>Gaussian Process Regression (GPR)</h2>
-                    <p><strong>Description:</strong> Uses Gaussian distributions to predict and estimate data uncertainties.</p>
-                    <p><strong>Use:</strong> Suitable for problems with high uncertainty.</p>
-                    <p><strong>Advantages:</strong> Predicts with confidence.</p>
-                    <p><strong>Disadvantages:</strong> Consumes resources with large data.</p>
+                <section id="xgboost-regressor">
+                    <h2>4. XGBoost Regressor</h2>
+                    <p><strong>Description:</strong> An efficient and scalable implementation of gradient boosting framework, designed for speed and performance.</p>
+                    <p><strong>Application:</strong> Widely used for structured/tabular data, particularly in competitions and real-world applications.</p>
+                    <p><strong>Advantages:</strong> High performance, handles missing values automatically, and includes regularization to prevent overfitting.</p>
+                    <p><strong>Limitations:</strong> Can be complex to tune and may require careful feature engineering.</p>
+                    <button class="view-more-btn" data-algorithm="xgboost-regressor">View more</button>
                 </section>
 
                 <section id="support-vector-regression">
-                    <h2>Support Vector Regression (SVR)</h2>
-                    <p><strong>Description:</strong> Uses SVM models to create a margin between points and predict values.</p>
-                    <p><strong>Use:</strong> Suitable for noisy data, high complexity.</p>
-                    <p><strong>Advantages:</strong> Good noise resistance.</p>
-                    <p><strong>Disadvantages:</strong> Difficult to scale for large data.</p>
+                    <h2>5. Support Vector Regression (SVR)</h2>
+                    <p><strong>Description:</strong> A type of Support Vector Machine that supports linear and non-linear regression.</p>
+                    <p><strong>Application:</strong> Suitable for high-dimensional spaces and when the number of dimensions exceeds the number of samples.</p>
+                    <p><strong>Advantages:</strong> Effective in high-dimensional spaces, robust against overfitting.</p>
+                    <p><strong>Limitations:</strong> Less effective on very large datasets, requires careful tuning of parameters.</p>
+                    <button class="view-more-btn" data-algorithm="support-vector-regression">View more</button>
+                    </section>
+
+                <section id="random-forest-regression">
+                    <h2>6. Random Forest Regression</h2>
+                    <p><strong>Description:</strong> An ensemble method that constructs multiple decision trees and merges them to get a more accurate and stable prediction.</p>
+                    <p><strong>Application:</strong> Works well for both regression and classification tasks, especially with large datasets.</p>
+                    <p><strong>Advantages:</strong> Reduces overfitting, handles missing values well.</p>
+                    <p><strong>Limitations:</strong> Can be less interpretable than single decision trees, requires more computational resources.</p>
+                    <button class="view-more-btn" data-algorithm="random-forest-regression">View more</button>
+                </section>
+
+                <section id="long-short-term-memory">
+                    <h2>7. Long Short-Term Memory (LSTM)</h2>
+                    <p><strong>Description:</strong> A specialized neural network adept at understanding sequential data, such as time-series feed intake.</p>
+                    <p><strong>Application:</strong> Excellent for forecasting feed consumption or weight changes based on historical data.</p>
+                    <p><strong>Advantages:</strong> Captures long-term dependencies effectively.</p>
+                    <p><strong>Limitations:</strong> High data and resource requirements.</p>
+                    <button class="view-more-btn" data-algorithm="long-short-term-memory">View more</button>
+                </section>
+
+                <section id="mlp-regressor">
+                    <h2>8. Multi-Layer Perceptron Regressor (MLP Regressor)</h2>
+                    <p><strong>Description:</strong> A type of neural network that consists of multiple layers of interconnected nodes, allowing for complex nonlinear relationships.</p>
+                    <p><strong>Application:</strong> Suitable for tasks requiring nonlinear relationships, such as predicting feed intake or weight changes.</p>
+                    <p><strong>Advantages:</strong> Highly flexible, capable of capturing complex patterns.</p>
+                    <p><strong>Limitations:</strong> Requires significant data and computational resources, can be prone to overfitting.</p>
+                    <button class="view-more-btn" data-algorithm="mlp-regressor">View more</button>
                 </section>
             </div>
         </section>
     </main>
+
+
+    <!-- Popup Container -->
+    <div class="popup" id="popup" style="display: none;">
+        <div class="popup-content">
+            <button class="close-btn">&times;</button>
+            <h2 id="popup-title">Title</h2>
+            <p id="popup-description">Detailed description here...</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
     <footer>
         <p>&copy; 2024 SmartSwine. All rights reserved.</p>
     </footer>
+
+    <script type="text/javascript" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
     <script src="./scripts_docs.js"></script>
 </body>
 </html>
