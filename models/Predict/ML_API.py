@@ -12,6 +12,9 @@ matplotlib.use('Agg')  # Sử dụng backend 'Agg' để không yêu cầu giao 
 import matplotlib.pyplot as plt
 import time
 
+#from flask_sslify import SSLify
+from threading import Thread
+
 from ML_main import reject
 from ML_main import test_data
 from ML_main import Create_data_new
@@ -24,6 +27,7 @@ from ML_Database import drop_table
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import tensorflow as tf
 app = Flask(__name__, static_folder='static')
+#sslify = SSLify(app)
 app.secret_key = os.urandom(24)
 
 stop_training_flags = {}
@@ -148,7 +152,7 @@ def docs():
 def support():
     return app.send_static_file('index_support.html')
 
-#************************************************************************************************************** */
+#************************************************************************************************************** */  
 #************************************************************************************************************** */
 #************************************************************************************************************** */
 # Tạo route để phục vụ hình ảnh
@@ -425,6 +429,8 @@ def get_all_summaries():
                 "output_algorithm4_default_weight_error",
                 "output_algorithm5_default_weight_error",
                 "output_algorithm6_default_weight_error",
+                "output_algorithm7_default_weight_error",
+                "output_algorithm8_default_weight_error"
             ],
             "dfi_error": [
                 "output_algorithm1_default_dfi_error",
@@ -433,6 +439,8 @@ def get_all_summaries():
                 "output_algorithm4_default_dfi_error",
                 "output_algorithm5_default_dfi_error",
                 "output_algorithm6_default_dfi_error",
+                "output_algorithm7_default_dfi_error",
+                "output_algorithm8_default_dfi_error"
             ],
         }
         
@@ -458,6 +466,8 @@ def get_all_summaries():
                 f"output_algorithm4_user_weight_error_{session_id_mysql}",
                 f"output_algorithm5_user_weight_error_{session_id_mysql}",
                 f"output_algorithm6_user_weight_error_{session_id_mysql}",
+                f"output_algorithm7_user_weight_error_{session_id_mysql}",
+                f"output_algorithm8_user_weight_error_{session_id_mysql}"
             ],
             "dfi_error": [
                 f"output_algorithm1_user_dfi_error_{session_id_mysql}",
@@ -466,6 +476,8 @@ def get_all_summaries():
                 f"output_algorithm4_user_dfi_error_{session_id_mysql}",
                 f"output_algorithm5_user_dfi_error_{session_id_mysql}",
                 f"output_algorithm6_user_dfi_error_{session_id_mysql}",
+                f"output_algorithm7_user_dfi_error_{session_id_mysql}",
+                f"output_algorithm8_user_dfi_error_{session_id_mysql}"
             ],
         }
     
@@ -589,6 +601,40 @@ def show_all_chart(donut_data, barchart_data, pig_id, algorithm):
         'metrics_image': metrics_image
     }
 
+
+
+#**************************************************************************************************************************
+
+def run_https():
+    app.run(
+        host="0.0.0.0",
+        port=443,
+        ssl_context=(
+            'C:\Certificate\khanhnv.id.vn-chain.pem',
+            'C:\Certificate\khanhnv.id.vn-key.pem'
+        )
+    )
+
+# App HTTP (chuyển hướng)
+http_app = Flask(__name__, static_folder='static')
+
+@http_app.route('/', defaults={'path': ''})
+@http_app.route('/<path:path>')
+def redirect_to_https(path):
+    url = request.url.replace("http://", "https://", 1)
+    return redirect(url, code=301)
+
+def run_http():
+    http_app.run(host="0.0.0.0", port=80)
+
+# Chạy song song cả hai app
 if __name__ == '__main__':
+    # Thread(target=run_https).start()
+    # Thread(target=run_http).start()
     app.run(debug=True)
-    # app.run(host="0.0.0.0", port=443, ssl_context=('C:\Certificate\khanhnv.id.vn-crt.pem', 'C:\Certificate\khanhnv.id.vn-key.pem'))
+
+#if __name__ == '__main__':
+    #app.run(debug=True)
+    #app.run(host="0.0.0.0", port=443, ssl_context=('C:\Certificate\khanhnv.id.vn-crt.pem', 'C:\Certificate\khanhnv.id.vn-key.pem'))
+    #app.run(host="0.0.0.0", port=443, ssl_context=('C:\Certificate\khanhnv.id.vn-chain.pem', 'C:\Certificate\khanhnv.id.vn-key.pem')
+#)

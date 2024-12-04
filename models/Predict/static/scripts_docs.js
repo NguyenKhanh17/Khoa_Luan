@@ -115,7 +115,7 @@ const translations = {
             "Hồi Quy Tuyến Tính",
             "Nâng Cao Gradient",
             "Hồi Quy K Nearest Neighbors (KNN Regression)",
-            "Mạng Nơ-Ron",
+            "Bộ Phân Lớp XGBoost",
             "Hồi Quy Vectơ Hỗ Trợ (SVR)",
             "Hồi Quy Rừng Ngẫu Nhiên",
             "Bộ Nhớ Ngắn Hạn Dài Hạn",
@@ -195,7 +195,7 @@ const translations = {
             "线性回归",
             "梯度提升",
             "K最近邻回归（KNN回归）",
-            "神经网络",
+            "XGBoost回归器",
             "支持向量回归（SVR）",
             "随机森林回归",
             "长短期记忆",
@@ -2258,6 +2258,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-
-

@@ -145,13 +145,15 @@ def update_Data_DFI(data, pig_id, predict_age, predict_dfi):
     return data
     
 #Lấy data gồm dữ liệu đầu vào đảm bảo cho việc huấn luyện DFI (1 cột age và 7 cột dfi của 7 ngày trước)
-def data_preprocessing_DFI(data):
+def data_preprocessing_DFI(data, algorithm):
     dfi_data = pd.DataFrame(columns=['dfi', 'age'])  # Thêm cột dfi và age
     dfi_data['dfi'] = data['dfi']
     dfi_data['age'] = data['age']
     
     for i in range(1, 8):  # Lấy giá trị DFI và tuổi của 7 ngày trước
         dfi_data[f'pre_dfi_{i}'] = data.groupby('id')['dfi'].shift(i)  # Lấy giá trị DFI trước cùng pig_id
+        if algorithm == 'algorithm7':
+            dfi_data[f'age_day_{i}'] = data.groupby('id')['age'].shift(i)
     dfi_data = dfi_data.dropna()  # Loại bỏ các hàng có giá trị NaN
     return dfi_data
 
@@ -162,27 +164,32 @@ def model_training_DFI(data, algorithm):
     data = data.dropna()
     
     if algorithm == 'algorithm7':
-        # Tạo danh sách các cột mới age_day_{i} với giá trị đều bằng cột age
-        for i in range(1, 8):
-            data[f'age_day_{i}'] = data['age']
-
         # Lấy danh sách các cột mới
         age_columns = [f'age_day_{i}' for i in range(1, 8)]
         pre_dfi_columns = [f'pre_dfi_{i}' for i in range(1, 8)]
 
-        # Lựa chọn các cột để tạo X
+        # Lựa chọn các cột
         selected_columns = age_columns + pre_dfi_columns
 
-        # Chuyển đổi dữ liệu thành mảng NumPy
-        data_values = data[selected_columns].values  # Đây là mảng 2D với kích thước (n_samples, 14)
-        
-        # Chuyển đổi mảng 2D thành mảng 3D
-        # Giả sử mỗi cột (age_day_i, pre_dfi_i) là một chiều trong mảng 3D, và 7 là số chiều thứ 3
-        X = data_values.reshape(-1, 7, 2)  # Reshape thành mảng 3D với kích thước (n_samples, 7, 2)
-        
-        y = data['dfi'].values  # Lấy mảng NumPy từ cột 'dfi'
-        # Đảm bảo y có kích thước (num_samples,)
-        y = y.reshape(-1)  # Chuyển đổi về mảng 1 chiều với kích thước (num_samples,)
+        # Lấy dữ liệu
+        data_df = data[selected_columns]
+        data_df.to_csv(os.path.join("includes", "data_df.csv"), index=False)
+
+        # Chuyển dữ liệu thành mảng NumPy
+        data_values = data[selected_columns].values
+
+        # Chia dữ liệu thành cặp (age_day_i, pre_dfi_i)
+        # reshape từng cặp trước khi tạo mảng 3D
+        pairs = np.empty((data_values.shape[0], 7, 2))  # Tạo mảng trống với kích thước (n_samples, 7, 2)
+        for i in range(7):
+            pairs[:, i, 0] = data[age_columns[i]].values  # Gán giá trị age_day_i vào trục thứ 2, index 0
+            pairs[:, i, 1] = data[pre_dfi_columns[i]].values  # Gán giá trị pre_dfi_i vào trục thứ 2, index 1
+
+        X = pairs  # Mảng 3D với kích thước (n_samples, 7, 2)
+
+        # Xử lý đầu ra y
+        y = data['dfi'].values
+        y = y.reshape(-1)  # Đảm bảo y là mảng 1 chiều
     else:
         X = data[['age'] + [f'pre_dfi_{i}' for i in range(1, 8)]]  # Sử dụng 7 giá trị DFI trước và tuổi hiện tại
         y = data['dfi']  # Cột DFI
@@ -204,6 +211,7 @@ def model_training_DFI(data, algorithm):
         'rmse': [rmse],
         'r2': [r2]
     })
+    metrics_DFI.to_csv(os.path.join("includes", "metrics_DFI.csv"), index=False)
     print(f"Độ chính xác dfi: (Mean Absolute Error (MAE)): {mae:.2f}")
     print(f"Độ chính xác dfi: (Mean Squared Error (MSE)): {mse:.2f}")
     print(f"Độ chính xác dfi: (Root Mean Squared Error (RMSE)): {rmse:.2f}")
@@ -216,7 +224,7 @@ def model_training_DFI(data, algorithm):
 #predict_age: int
 #OUT: float, update data đã điền sau khi dự đoán dfi
 def predict_DFI(data, pig_id, predict_age, algorithm):
-    dfi_data = data_preprocessing_DFI(data) 
+    dfi_data = data_preprocessing_DFI(data, algorithm) 
     model, metrics_DFI  = model_training_DFI(dfi_data, algorithm)
     pig_data = data_preprocessing(data, pig_id)
     
@@ -234,7 +242,7 @@ def predict_DFI(data, pig_id, predict_age, algorithm):
             if algorithm == 'algorithm7':
                 # Tạo DataFrame với 14 cột: 7 cột age_day_{i} và 7 cột pre_dfi_{i}
                 input_model_df = pd.DataFrame(
-                    {**{f'age_day_{i}': [age_input] for i in range(1, 8)},  # Tạo 7 cột age_day_{i} với giá trị age_input
+                    {**{f'age_day_{i}': [age_input - i] for i in range(1, 8)},  # Tạo 7 cột age_day_{i} với giá trị age_input
                     **{f'pre_dfi_{i}': [0] for i in range(1, 8)}},  # Khởi tạo 7 cột pre_dfi_{i} với giá trị mặc định là 0
                     columns=[f'age_day_{i}' for i in range(1, 8)] + [f'pre_dfi_{i}' for i in range(1, 8)]  # Đảm bảo thứ tự cột
                 )
@@ -408,7 +416,7 @@ def predict_Weight(data, pig_id, predict_age, max_age, algorithm):
 
 #****************************************************   3   ************************************************************        
 def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
-    dfi_data = data_preprocessing_DFI(data) 
+    dfi_data = data_preprocessing_DFI(data, algorithm) 
     model, metrics_DFI = model_training_DFI(dfi_data, algorithm)
     pig_data = data_preprocessing(data, pig_id)
     
@@ -440,10 +448,12 @@ def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
         def input_model_DFI(data_input, age_input, algorithm):
             
             if algorithm == 'algorithm7':
-                # Tạo DataFrame với 14 cột: 7 cột age_day_{i} và 7 cột pre_dfi_{i}
+                # Tạo DataFrame với các cột age_day_{i} và pre_dfi_{i}
                 input_model_df = pd.DataFrame(
-                    {**{f'age_day_{i}': [age_input] for i in range(1, 8)},  # Tạo 7 cột age_day_{i} với giá trị age_input
-                    **{f'pre_dfi_{i}': [0] for i in range(1, 8)}},  # Khởi tạo 7 cột pre_dfi_{i} với giá trị mặc định là 0
+                    {
+                        **{f'age_day_{i}': [age_input - i] for i in range(1, 8)},  # Tạo 7 cột age_day_{i} với giá trị age_input
+                        **{f'pre_dfi_{i}': [0] for i in range(1, 8)}  # Khởi tạo 7 cột pre_dfi_{i} với giá trị mặc định là 0
+                    },
                     columns=[f'age_day_{i}' for i in range(1, 8)] + [f'pre_dfi_{i}' for i in range(1, 8)]  # Đảm bảo thứ tự cột
                 )
 
@@ -453,11 +463,28 @@ def multi_predict_DFI(data, pig_id, first_day, last_day, algorithm):
                     if previous_dfi.size == 0:
                         break
                     input_model_df[f'pre_dfi_{i}'] = previous_dfi[0]  # Gán giá trị DFI trước đó
+                
+                input_model_df.to_csv(os.path.join("includes", "input_model_df.csv"), index=False, mode='a', header=False)
+                
+                if (input_model_df <= 0).any().any():  
+                    print("DataFrame chứa giá trị <= 0, trả về mảng 3D mặc định.")
+                    # Giả sử chiều thứ ba là 1 (hoặc giá trị bạn cần)
+                    return np.full((input_model_df.shape[0], input_model_df.shape[1], 1), np.nan)
+                input_model_df.to_csv(os.path.join("includes", "input_model_df_final.csv"), index=False, mode='a', header=False)
+                # Chuyển đổi DataFrame thành mảng 3D
+                # Lấy các cột age_day và pre_dfi theo thứ tự
+                age_columns = [f'age_day_{i}' for i in range(1, 8)]
+                pre_dfi_columns = [f'pre_dfi_{i}' for i in range(1, 8)]
 
-                # Chuyển DataFrame thành mảng 3D
-                input_model_final = input_model_df.to_numpy()
-                input_model_final = input_model_final.reshape(1, 7, 2)  # Đầu vào cho một mẫu duy nhất
+                # Khởi tạo mảng 3D
+                pairs = np.empty((1, 7, 2))  # Một mẫu duy nhất với kích thước (1, 7, 2)
+                for i in range(7):
+                    pairs[0, i, 0] = input_model_df[age_columns[i]].values[0]  # Gán giá trị age_day_i
+                    pairs[0, i, 1] = input_model_df[pre_dfi_columns[i]].values[0]  # Gán giá trị pre_dfi_i
 
+                # Đầu vào cuối cùng cho mô hình
+                input_model_final = pairs  # Mảng 3D với kích thước (1, 7, 2)
+                
             else:
                 input_model_final = pd.DataFrame({'age': [age_input]}, columns=['age'] + [f'pre_dfi_{i}' for i in range(1, 8)])  # Tạo DataFrame với 8 cột, gán giá trị age hàng đầu tiên là age_input
                 for i in range(1, 8):

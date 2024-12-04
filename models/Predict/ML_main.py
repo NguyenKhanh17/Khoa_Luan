@@ -156,17 +156,21 @@ def paint_metrics(algorithm, session_id_mysql):
     ax.set_xlabel('Metrics')
     ax.set_ylabel('Values')
     if algorithm == 'algorithm1':
-        ax.set_title('Comparison of LinearRegression Errors')
+        ax.set_title('Comparison of Linear Regression Errors')
     elif algorithm == 'algorithm2':
-        ax.set_title('Comparison of GradientBoostingRegressor Errors')
+        ax.set_title('Comparison of Gradient Boosting Regressor Errors')
     elif algorithm == 'algorithm3':
-        ax.set_title('Comparison of KNeighborsRegressor Errors')
+        ax.set_title('Comparison of K Neighbors Regressor Errors')
     elif algorithm == 'algorithm4':
-        ax.set_title('Comparison of MLPRegressor Errors')
+        ax.set_title('Comparison of MLP Regressor Errors')
     elif algorithm == 'algorithm5':
         ax.set_title('Comparison of SVR Errors')
     elif algorithm == 'algorithm6':
-        ax.set_title('Comparison of RandomForestRegressor Errors')
+        ax.set_title('Comparison of Random Forest Regressor Errors')
+    elif algorithm == "algorithm7":
+        ax.set_title('Comparison of Long Short Term Memory Errors')
+    elif algorithm == "algorithm8":
+        ax.set_title('Comparison of XGBoost Regressor Errors')
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.legend()
@@ -746,6 +750,9 @@ def Create_single_data(dfi_data, weight_data, pig_id, first_day, last_day, algor
 #**************************************************    5    ****************************************************************       
 def main():
     #Create_ALL_data_begin('algorithm7', 'dfi')
+    #Create_ALL_data_begin('algorithm7', 'weight')
+
+    Create_ALL_data_begin('algorithm7', 'dfi')
     Create_ALL_data_begin('algorithm7', 'weight')
     
 def main_test():

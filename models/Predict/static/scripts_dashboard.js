@@ -547,7 +547,8 @@ document.getElementById("exportPDF").addEventListener("click", function () {
                 styles: { cellPadding: 5, fontSize: 10 },
             });
             yPosition = doc.autoTable.previous.finalY + lineSpacing * 2;
-        
+            doc.addPage();
+            yPosition = margin + 10;
             // Section: Metrics for Weight
             doc.setFont("helvetica", "bold");
             doc.setFontSize(14);
@@ -649,6 +650,10 @@ document.getElementById("exportPDF").addEventListener("click", function () {
                         { maxWidth: pageWidth - 2 * margin }
                     );
                     if (index_addPage === 5) {
+                        doc.addPage();
+                        yPosition = margin + 10;
+                    }
+                    if (selectedAlgorithms.length > 6 && index_addPage === 1) {
                         doc.addPage();
                         yPosition = margin + 10;
                     }
