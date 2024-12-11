@@ -281,8 +281,14 @@ def predict_DFI(data, pig_id, predict_age, algorithm):
                 
                 input_model = input_model_DFI(pig_data, max_age, algorithm)
                 
-                if input_model.isnull().any().any():
-                    return None
+                if algorithm == 'algorithm7':
+                    # Kiểm tra NaN trong mảng 3 chiều
+                    if np.isnan(input_model).any():
+                        return None
+                else:
+                    # Kiểm tra NaN trong mảng 2 chiều
+                    if pd.DataFrame(input_model).isnull().any().any():
+                        return None
                 
                 print(f"Ngày {predict_age}:")
                 predict_dfi = float(predict_input_custom(model, input_model).round(3))

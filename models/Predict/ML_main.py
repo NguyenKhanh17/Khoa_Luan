@@ -295,8 +295,6 @@ def Create_data_new(first_day, last_day, algorithm, session_new_data):
 #***************************************************************************************************************************
 #***************************************************************************************************************************
 #Hàm xử lý dữ liệu khi reject
-
-    
 def reject(pig_id, first_day, last_day, algorithm, session_id_mysql):
     try:
         table_prefix = "input_user_" if session_id_mysql else "input_default_data"
@@ -609,9 +607,7 @@ def reject(pig_id, first_day, last_day, algorithm, session_id_mysql):
     except Exception as e:
         print(f"Lỗi trong hàm reject: {str(e)}")
         return 400, None, None       
-        
-        
-        
+ 
         
 #***************************************************************************************************************************
 #***************************************************************************************************************************
@@ -752,7 +748,7 @@ def main():
     #Create_ALL_data_begin('algorithm7', 'dfi')
     #Create_ALL_data_begin('algorithm7', 'weight')
 
-    Create_ALL_data_begin('algorithm7', 'dfi')
+    #Create_ALL_data_begin('algorithm7', 'dfi')
     Create_ALL_data_begin('algorithm7', 'weight')
     
 def main_test():
